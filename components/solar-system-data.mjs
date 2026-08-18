@@ -4,9 +4,9 @@
 // Radii and orbital values are physical reference data; the rendered scene uses
 // explicit non-linear mappings so all eight planets remain visible on screen.
 
-export const SUN_VISUAL_RADIUS = 0.82;
+export const SUN_VISUAL_RADIUS = 0.41;
 export const SOLAR_SCALE_NOTE =
-  "可视化比例 · Planet sizes and orbital spacing use non-linear visualized scales";
+  "可视化示意 · 尺寸、间距、轨道形状、初始相位与时间均经压缩；非实时星历 · Visualized size, spacing, orbital shape, phase and time; not an ephemeris";
 export const SOLAR_CAMERA_NARROW = Object.freeze([0, 22, 28]);
 
 export const SOLAR_SYSTEM_BODIES = Object.freeze([
@@ -110,6 +110,10 @@ export const SOLAR_SYSTEM_BODIES = Object.freeze([
 
 export function visualPlanetRadius(radiusKm) {
   return 0.055 + 0.11 * Math.pow(Number(radiusKm) / 6371, 0.42);
+}
+
+export function axialTiltRadians(body) {
+  return (body.axialTiltDeg * Math.PI) / 180;
 }
 
 export function visualOrbitRadius(orbitAu) {

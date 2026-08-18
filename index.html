@@ -45,7 +45,14 @@
     <script src="starfield.js" defer></script>
     <script src="public/components/planetary-gear-kit.js" defer></script>
     <script src="public/components/universal-joint-kit.js" defer></script>
-    <script type="module" src="three-lab.js"></script>
+    <script type="module">
+      import("./three-lab.js").catch((error) => {
+        document.querySelectorAll("[data-three-view]").forEach((viewport) => {
+          viewport.classList.add("has-error");
+        });
+        console.error("AgentV 3D lab module failed to load.", error);
+      });
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳到主要内容 / Skip to content</a>
@@ -162,9 +169,85 @@
         </div>
       </section>
 
+      <section class="three-lab section container" id="lab" aria-labelledby="lab-title">
+        <div class="section-heading lab-heading">
+          <div class="section-kicker">
+            <span>01</span>
+            <p>3D 教学实验场 / Interactive 3D lab</p>
+          </div>
+          <h2 id="lab-title">
+            让思维，浩瀚放映。
+            <br><span>Mind into motion.</span>
+          </h2>
+        </div>
+
+        <div class="lab-grid" data-three-lab-grid>
+          <article class="lab-card" data-lab-card="solar">
+            <header class="lab-card-copy">
+              <p class="lab-overline">01 / ASTRONOMY</p>
+              <h3>太阳系课堂 <span>/ Solar System</span></h3>
+              <p>八大行星、倾斜轨道与压缩后的空间尺度。</p>
+            </header>
+            <div class="lab-viewport" data-three-view="solar" tabindex="0" role="region" aria-label="太阳系3D场景；使用方向键旋转，Home键复位">
+              <canvas data-three-canvas aria-label="可交互的太阳系3D场景"></canvas>
+              <div class="lab-hud" aria-hidden="true"><span>WEBGL / LIVE</span><span class="lab-hud-state"><i></i> SOLAR</span></div>
+              <p class="lab-scene-badge">8 PLANETS · ORBITAL PLANES</p>
+              <button class="lab-reset-view" data-reset-view type="button">复位 · Reset</button>
+              <div class="lab-axis" aria-hidden="true"><span>X</span><span>Y</span><span>Z</span></div>
+              <p class="lab-interaction">拖动或方向键旋转 · Drag or use arrow keys</p>
+              <div class="lab-fallback" role="status">当前浏览器无法加载太阳系3D场景。<span>Unable to load this WebGL scene.</span></div>
+            </div>
+            <p class="lab-scene-meta">可视化示意：尺寸、间距、相位与时间均经压缩，不是实时星历。</p>
+          </article>
+
+          <article class="lab-card" data-lab-card="gearbox">
+            <header class="lab-card-copy">
+              <p class="lab-overline">02 / MECHANICS</p>
+              <h3>行星齿轮箱 <span>/ Gearbox</span></h3>
+              <p>18齿太阳轮、三组12齿行星轮与42齿固定齿圈。</p>
+            </header>
+            <div class="lab-viewport" data-three-view="gearbox" tabindex="0" role="region" aria-label="行星齿轮箱3D场景；使用方向键旋转，Home键复位">
+              <canvas data-three-canvas aria-label="可交互的行星齿轮箱3D场景"></canvas>
+              <div class="lab-hud" aria-hidden="true"><span>WEBGL / LIVE</span><span class="lab-hud-state"><i></i> GEARBOX</span></div>
+              <p class="lab-scene-badge">18T · 3×12T · 42T · i=3.33</p>
+              <button class="lab-reset-view" data-reset-view type="button">复位 · Reset</button>
+              <div class="lab-axis" aria-hidden="true"><span>X</span><span>Y</span><span>Z</span></div>
+              <p class="lab-interaction">拖动或方向键旋转 · Drag or use arrow keys</p>
+              <div class="lab-fallback" role="status">当前浏览器无法加载齿轮箱3D场景。<span>Unable to load this WebGL scene.</span></div>
+            </div>
+            <p class="lab-scene-meta">CreatorSkills验证组件 · 节圆啮合 · 固定齿圈传动比3.33:1。</p>
+          </article>
+
+          <article class="lab-card" data-lab-card="joint">
+            <header class="lab-card-copy">
+              <p class="lab-overline">03 / KINEMATICS</p>
+              <h3>万向节机构 <span>/ Universal Joint</span></h3>
+              <p>双叉、十字轴与四轴承杯，展示25°夹角下的非匀速输出。</p>
+            </header>
+            <div class="lab-viewport" data-three-view="joint" tabindex="0" role="region" aria-label="万向节3D场景；使用方向键旋转，Home键复位">
+              <canvas data-three-canvas aria-label="可交互的万向节3D场景"></canvas>
+              <div class="lab-hud" aria-hidden="true"><span>WEBGL / LIVE</span><span class="lab-hud-state"><i></i> CARDAN</span></div>
+              <p class="lab-scene-badge">β=25° · VALIDATED MOTION</p>
+              <button class="lab-reset-view" data-reset-view type="button">复位 · Reset</button>
+              <div class="lab-axis" aria-hidden="true"><span>X</span><span>Y</span><span>Z</span></div>
+              <p class="lab-interaction">拖动或方向键旋转 · Drag or use arrow keys</p>
+              <div class="lab-fallback" role="status">当前浏览器无法加载万向节3D场景。<span>Unable to load this WebGL scene.</span></div>
+            </div>
+            <p class="lab-scene-meta">CreatorSkills验证组件 · SINGLE CARDAN · β=25°。</p>
+          </article>
+        </div>
+
+        <ol class="generation-pipeline" aria-label="AgentV 3D 场景生成流程">
+          <li><span>01</span><strong>主题理解</strong><small>Topic analysis</small></li>
+          <li><span>02</span><strong>结构建模</strong><small>Procedural modeling</small></li>
+          <li><span>03</span><strong>镜头编排</strong><small>Camera direction</small></li>
+          <li><span>04</span><strong>视频输出</strong><small>Video composition</small></li>
+        </ol>
+      </section>
+
       <section class="statement section container" id="mission" aria-labelledby="mission-title">
         <div class="section-kicker">
-          <span>01</span>
+          <span>02</span>
           <p>认识 AgentV / Meet AgentV</p>
         </div>
         <div class="statement-copy">
@@ -187,7 +270,7 @@
       <section class="directions section container" id="directions" aria-labelledby="directions-title">
         <div class="section-heading">
           <div class="section-kicker">
-            <span>02</span>
+            <span>03</span>
             <p>核心能力 / Core capabilities</p>
           </div>
           <h2 id="directions-title">不止一种课堂场景。<br><span>More than one way to teach.</span></h2>
@@ -238,114 +321,6 @@
               goals for more flexible educational storytelling.
             </p>
           </article>
-        </div>
-      </section>
-
-      <section class="three-lab section container" id="lab" aria-labelledby="lab-title">
-        <div class="section-heading lab-heading">
-          <div class="section-kicker">
-            <span>03</span>
-            <p>3D 教学实验场 / Interactive 3D lab</p>
-          </div>
-          <h2 id="lab-title">
-            从知识结构，到真实可感的 3D 场景。
-            <br><span>From concepts to spatial learning.</span>
-          </h2>
-        </div>
-
-        <div class="lab-shell">
-          <div class="lab-toolbar">
-            <div>
-              <p class="lab-overline">AGENTV · REAL-TIME SCENE PROTOTYPE</p>
-              <h3 id="lab-scene-title">太阳系课堂 / Solar System</h3>
-              <p id="lab-scene-description">
-                以真实天文数据为基础，用非线性可视化比例呈现八大行星的尺度层级、轨道次序与空间关系。
-              </p>
-              <p class="lab-scene-meta" id="lab-scene-meta">
-                可视化比例 · Planet sizes and orbital spacing use non-linear visualized scales
-              </p>
-            </div>
-            <div class="lab-selector" role="group" aria-label="选择 3D 教学场景">
-              <button
-                class="lab-tab is-active"
-                type="button"
-                data-scene="solar"
-                aria-pressed="true"
-              >
-                <span>01</span> 太阳系
-              </button>
-              <button
-                class="lab-tab"
-                type="button"
-                data-scene="gearbox"
-                aria-pressed="false"
-              >
-                <span>02</span> 行星齿轮箱
-              </button>
-              <button
-                class="lab-tab"
-                type="button"
-                data-scene="joint"
-                aria-pressed="false"
-              >
-                <span>03</span> 万向节
-              </button>
-            </div>
-          </div>
-
-          <div
-            class="lab-viewport"
-            data-three-lab
-            tabindex="0"
-            role="region"
-            aria-label="可交互的 AgentV 3D 教学场景；使用方向键旋转，Home 键复位视角"
-          >
-            <canvas
-              id="agentv-three-canvas"
-              aria-label="可交互的 AgentV 3D 教学场景"
-            ></canvas>
-            <div class="lab-hud" aria-hidden="true">
-              <span>WEBGL / REAL-TIME</span>
-              <span class="lab-hud-state"><i></i> SCENE READY</span>
-            </div>
-            <p class="lab-scene-badge" id="lab-scene-badge" aria-live="polite">
-              8 PLANETS · LOG ORBITS · VISUALIZED RADII
-            </p>
-            <button class="lab-reset-view" id="lab-reset-view" type="button">
-              视角复位 · Reset view
-            </button>
-            <div class="lab-axis" aria-hidden="true">
-              <span>X</span><span>Y</span><span>Z</span>
-            </div>
-            <p class="lab-interaction">拖动或方向键旋转 · Drag or use arrow keys</p>
-            <div class="lab-fallback" role="status">
-              当前浏览器无法加载 WebGL 3D 场景，请尝试使用现代浏览器。
-              <span>Your browser could not load the WebGL scene.</span>
-            </div>
-          </div>
-
-          <ol class="generation-pipeline" aria-label="AgentV 3D 场景生成流程">
-            <li>
-              <span>01</span>
-              <strong>主题理解</strong>
-              <small>Topic analysis</small>
-            </li>
-            <li>
-              <span>02</span>
-              <strong>结构建模</strong>
-              <small>Procedural modeling</small>
-            </li>
-            <li>
-              <span>03</span>
-              <strong>镜头编排</strong>
-              <small>Camera direction</small>
-            </li>
-            <li>
-              <span>04</span>
-              <strong>视频输出</strong>
-              <small>Video composition</small>
-            </li>
-          </ol>
         </div>
       </section>
 
