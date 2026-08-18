@@ -17,11 +17,12 @@
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const palette = [
-    [142, 231, 255],
-    [142, 231, 255],
-    [198, 225, 255],
-    [255, 255, 255],
-    [108, 156, 255],
+    [102, 8, 116],
+    [102, 8, 116],
+    [139, 52, 153],
+    [174, 92, 189],
+    [218, 164, 229],
+    [248, 230, 252],
   ];
   const depthNear = 0.16;
   const depthFar = 1.25;
@@ -84,26 +85,60 @@
 
   const paintParticle = (particle, previous, current) => {
     const proximity = 1 - (particle.z - depthNear) / (depthFar - depthNear);
-    const alpha = 0.08 + proximity * 0.48;
+    const alpha = 0.2 + proximity * 0.67;
     const [red, green, blue] = particle.color;
+    const movementX = current.x - previous.x;
+    const movementY = current.y - previous.y;
+    const movementLength = Math.hypot(movementX, movementY);
+    const radialX = current.x - focalX - offsetX;
+    const radialY = current.y - focalY - offsetY;
+    const radialLength = Math.max(Math.hypot(radialX, radialY), 1);
+    const directionX =
+      movementLength > 0.02 ? movementX / movementLength : radialX / radialLength;
+    const directionY =
+      movementLength > 0.02 ? movementY / movementLength : radialY / radialLength;
+    const trailLength = 7 + proximity * 48 + particle.speed * 4;
+    const tailX = current.x - directionX * trailLength;
+    const tailY = current.y - directionY * trailLength;
+    const trailGradient = context.createLinearGradient(
+      tailX,
+      tailY,
+      current.x,
+      current.y,
+    );
+    trailGradient.addColorStop(0, `rgba(${red}, ${green}, ${blue}, 0)`);
+    trailGradient.addColorStop(
+      0.42,
+      `rgba(${red}, ${green}, ${blue}, ${alpha * 0.24})`,
+    );
+    trailGradient.addColorStop(
+      1,
+      `rgba(${red}, ${green}, ${blue}, ${alpha})`,
+    );
 
-    context.strokeStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-    context.lineWidth = particle.size * (0.45 + proximity * 0.65);
+    context.save();
+    context.shadowColor = `rgba(${red}, ${green}, ${blue}, ${alpha * 0.8})`;
+    context.shadowBlur = 3 + proximity * 8;
+    context.strokeStyle = trailGradient;
+    context.lineWidth = particle.size * (0.75 + proximity * 1.25);
+    context.lineCap = "round";
     context.beginPath();
-    context.moveTo(previous.x, previous.y);
+    context.moveTo(tailX, tailY);
     context.lineTo(current.x, current.y);
     context.stroke();
 
-    context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${Math.min(alpha + 0.16, 0.72)})`;
+    context.shadowBlur = 5 + proximity * 11;
+    context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${Math.min(alpha + 0.2, 1)})`;
     context.beginPath();
     context.arc(
       current.x,
       current.y,
-      particle.size * (0.4 + proximity * 0.7),
+      particle.size * (0.65 + proximity * 0.9),
       0,
       Math.PI * 2,
     );
     context.fill();
+    context.restore();
   };
 
   const drawStaticField = () => {
@@ -131,7 +166,7 @@
       const particle = particles[index];
       const previous = project(particle);
 
-      particle.z -= elapsed * 0.000055 * particle.speed;
+      particle.z -= elapsed * 0.000072 * particle.speed;
       const turn = elapsed * 0.0000028;
       const oldX = particle.x;
       particle.x = oldX * Math.cos(turn) - particle.y * Math.sin(turn);
