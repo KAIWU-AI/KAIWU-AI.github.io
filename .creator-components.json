@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "adoptions": [
+    {
+      "id": "three.planetary-gear-kit",
+      "catalog": "resources/video-visual-components/catalog.json",
+      "adopted_at": "2026-08-18T01:02:56.854184+00:00",
+      "license": {
+        "status": "internal-original",
+        "owner": "hydraxman / CreatorSkills",
+        "redistribution": "Private CreatorSkills and user-owned projects"
+      },
+      "provenance": {
+        "source_project": "projects/planetary-gearbox-professional-english",
+        "adaptation": "Generalized from a rendered and mechanically verified Three.js teaching video."
+      },
+      "files": [
+        {
+          "source": "resources/video-visual-components/components/three/planetary-gear-kit.js",
+          "target": "public/components/planetary-gear-kit.js",
+          "sha256": "5373a97455dbf08e9a9e50e8d70de874fd37bece1b14a9c269289793f6e44075"
+        }
+      ]
+    },
+    {
+      "id": "three.universal-joint-kit",
+      "catalog": "resources/video-visual-components/catalog.json",
+      "adopted_at": "2026-08-18T01:02:56.902003+00:00",
+      "license": {
+        "status": "internal-original",
+        "owner": "hydraxman / CreatorSkills",
+        "redistribution": "Private CreatorSkills and user-owned projects"
+      },
+      "provenance": {
+        "source_project": "projects/universal-joint-professional-english",
+        "adaptation": "Promoted byte-identically from the final encoded 120-second bilingual lesson after independent geometry/kinematics truth verification, HyperFrames runtime/layout checks, repeated-time SHA, H.264/AAC full decode, 48 kHz audio QA, seven-view-cluster encoded-frame review and semantic vision review."
+      },
+      "files": [
+        {
+          "source": "resources/video-visual-components/components/three/universal-joint-kit.js",
+          "target": "public/components/universal-joint-kit.js",
+          "sha256": "0aecd33857d886eb9b771135df3717f7dc76eebc774fe03dda635d1dc30f90fd"
+        }
+      ]
+    }
+  ]
+}

@@ -14,9 +14,36 @@ The site has no build dependencies and vendors a pinned Three.js runtime in `ven
 python -m http.server 8000
 ```
 
-然后访问 <http://localhost:8000>。
+然后访问：
+
+`http://localhost:8000`
 
 Then open <http://localhost:8000>.
+
+## 3D 实验场
+
+首页实验场是零构建依赖的本地 Three.js 模块，包含：
+
+- **太阳系**：NASA 八大行星真实半径、轨道顺序和公转参数；画面明确采用非线性的可视化半径与对数轨道压缩，避免把视觉比例误称为 1:1 天文比例。
+- **行星齿轮箱**：复用 CreatorSkills 中已通过机械真值和成片验证的 `three.planetary-gear-kit`，保持 18T 太阳轮 / 3×12T 行星轮 / 42T 固定齿圈关系。
+- **万向节**：复用已验证的 `three.universal-joint-kit`，包含双叉、十字轴、四轴承杯与单十字轴万向节的非匀速输出关系。
+
+机械组件以项目本地副本运行，不依赖外部组件库；来源、许可证、目标路径和 SHA-256 记录在 [`.creator-components.json`](./.creator-components.json)。太阳系数据与视觉映射位于 [`components/solar-system-data.mjs`](./components/solar-system-data.mjs)。
+
+数据来源：
+
+- [NASA · About the Planets](https://science.nasa.gov/solar-system/planets/)
+- [NASA · Planet Sizes and Locations in Our Solar System](https://science.nasa.gov/solar-system/planet-sizes-and-locations-in-our-solar-system/)
+
+## 验证
+
+无需安装 npm 依赖：
+
+```bash
+node --test tests/*.test.mjs
+```
+
+测试覆盖八大行星次序、可视化比例映射、组件 SHA-256，以及齿轮箱和万向节运动学契约。GitHub Pages 部署工作流会在发布前运行同一门禁。
 
 ## 发布 / Deployment
 
