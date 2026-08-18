@@ -43,6 +43,8 @@
     </script>
     <script src="script.js" defer></script>
     <script src="starfield.js" defer></script>
+    <script src="public/components/planetary-gear-kit.js" defer></script>
+    <script src="public/components/universal-joint-kit.js" defer></script>
     <script type="module" src="three-lab.js"></script>
   </head>
   <body>
@@ -257,7 +259,10 @@
               <p class="lab-overline">AGENTV · REAL-TIME SCENE PROTOTYPE</p>
               <h3 id="lab-scene-title">太阳系课堂 / Solar System</h3>
               <p id="lab-scene-description">
-                观察行星轨道、尺度层级与空间关系，让宇宙知识从平面图示走向立体课堂。
+                以真实天文数据为基础，用非线性可视化比例呈现八大行星的尺度层级、轨道次序与空间关系。
+              </p>
+              <p class="lab-scene-meta" id="lab-scene-meta">
+                可视化比例 · Planet sizes and orbital spacing use non-linear visualized scales
               </p>
             </div>
             <div class="lab-selector" role="group" aria-label="选择 3D 教学场景">
@@ -297,6 +302,12 @@
               <span>WEBGL / REAL-TIME</span>
               <span class="lab-hud-state"><i></i> SCENE READY</span>
             </div>
+            <p class="lab-scene-badge" id="lab-scene-badge" aria-live="polite">
+              8 PLANETS · LOG ORBITS · VISUALIZED RADII
+            </p>
+            <button class="lab-reset-view" id="lab-reset-view" type="button">
+              视角复位 · Reset view
+            </button>
             <div class="lab-axis" aria-hidden="true">
               <span>X</span><span>Y</span><span>Z</span>
             </div>

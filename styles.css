@@ -1161,11 +1161,21 @@ a {
   letter-spacing: -0.025em;
 }
 
-.lab-toolbar > div > p:last-child {
+.lab-toolbar #lab-scene-description {
   max-width: 41rem;
   margin: 0.65rem 0 0;
   color: var(--text-dim);
   font-size: 0.82rem;
+}
+
+.lab-scene-meta {
+  max-width: 44rem;
+  margin: 0.7rem 0 0;
+  color: rgba(142, 231, 255, 0.72);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.055em;
+  line-height: 1.55;
 }
 
 .lab-selector {
@@ -1274,6 +1284,50 @@ a {
   border-radius: 50%;
   background: currentColor;
   box-shadow: 0 0 0.8rem currentColor;
+}
+
+.lab-scene-badge {
+  position: absolute;
+  z-index: 3;
+  top: 3.1rem;
+  left: 1rem;
+  max-width: min(calc(100% - 2rem), 36rem);
+  margin: 0;
+  padding: 0.42rem 0.62rem;
+  border: 1px solid rgba(142, 231, 255, 0.16);
+  border-radius: 0.25rem;
+  background: rgba(4, 9, 15, 0.58);
+  color: rgba(183, 232, 247, 0.78);
+  pointer-events: none;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.085em;
+  line-height: 1.35;
+  backdrop-filter: blur(9px);
+}
+
+.lab-reset-view {
+  position: absolute;
+  z-index: 4;
+  right: 1rem;
+  bottom: 2.7rem;
+  min-height: 2rem;
+  padding: 0.34rem 0.55rem;
+  border: 1px solid rgba(142, 231, 255, 0.2);
+  border-radius: 0.28rem;
+  background: rgba(4, 9, 15, 0.68);
+  color: rgba(183, 232, 247, 0.78);
+  cursor: pointer;
+  font: 500 0.6rem/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(9px);
+}
+
+.lab-reset-view:hover,
+.lab-reset-view:focus-visible {
+  border-color: rgba(142, 231, 255, 0.5);
+  color: var(--accent);
+  outline: none;
 }
 
 .lab-axis {
@@ -1854,6 +1908,18 @@ a {
     min-height: 27rem;
     height: 72vh;
     max-height: 34rem;
+  }
+
+  .lab-scene-badge {
+    right: 0.75rem;
+    left: 0.75rem;
+    max-width: none;
+    font-size: 0.52rem;
+    letter-spacing: 0.045em;
+  }
+
+  .lab-reset-view {
+    right: 0.75rem;
   }
 
   .generation-pipeline {

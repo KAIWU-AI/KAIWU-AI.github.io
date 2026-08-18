@@ -1,9 +1,19 @@
 import * as THREE from "./vendor/three.module.min.js";
+import {
+  SOLAR_SYSTEM_BODIES,
+  SUN_VISUAL_RADIUS,
+  SOLAR_SCALE_NOTE,
+  visualOrbitRadius,
+  visualPlanetRadius,
+} from "./components/solar-system-data.mjs";
 
 const viewport = document.querySelector("[data-three-lab]");
 const canvas = document.querySelector("#agentv-three-canvas");
 const sceneTitle = document.querySelector("#lab-scene-title");
 const sceneDescription = document.querySelector("#lab-scene-description");
+const sceneMeta = document.querySelector("#lab-scene-meta");
+const sceneBadge = document.querySelector("#lab-scene-badge");
+const resetButton = document.querySelector("#lab-reset-view");
 const sceneTabs = [...document.querySelectorAll("[data-scene]")];
 
 if (!viewport || !canvas || !sceneTitle || !sceneDescription) {
@@ -14,25 +24,32 @@ const sceneCopy = {
   solar: {
     title: "太阳系课堂 / Solar System",
     description:
-      "观察行星轨道、尺度层级与空间关系，让宇宙知识从平面图示走向立体课堂。",
+      "以真实天文数据为基础，用非线性可视化比例呈现八大行星的尺度层级、轨道次序与空间关系。",
+    meta: SOLAR_SCALE_NOTE,
+    badge: "8 PLANETS · LOG ORBITS · VISUALIZED RADII",
   },
   gearbox: {
     title: "行星齿轮箱 / Planetary Gearbox",
     description:
-      "拆解太阳轮、行星轮与齿圈的协同运动，直观看见机械传动与速比关系。",
+      "复用已通过视频成片与机械真值验证的18齿太阳轮、三组12齿行星轮和42齿固定齿圈。",
+    meta: "教学几何 · 18T SUN / 3×12T PLANETS / 42T FIXED RING",
+    badge: "VALIDATED COMPONENT · i = 3.33:1",
   },
   joint: {
     title: "万向节机构 / Universal Joint",
     description:
-      "观察交叉轴如何在夹角变化中传递旋转，理解机械连接与运动约束。",
+      "复用已验证的双叉、十字轴与四轴承杯模型，展示25°夹角下单十字轴万向节的非匀速输出。",
+    meta: "教学几何 · SINGLE CARDAN · β = 25°",
+    badge: "VALIDATED KINEMATICS · TAN α₂ / TAN α₁ = COS β",
   },
 };
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const modelRoot = new THREE.Group();
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 120);
-const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
+const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 160);
+const cameraTarget = new THREE.Vector3();
+const pointer = { yaw: 0, pitch: 0, targetYaw: 0, targetPitch: 0 };
 const animationState = {
   activeScene: "solar",
   elapsed: 0,
@@ -42,8 +59,8 @@ const animationState = {
   dragging: false,
   dragStartX: 0,
   dragStartY: 0,
-  startTargetX: 0,
-  startTargetY: 0,
+  startYaw: 0,
+  startPitch: 0,
 };
 
 let renderer;
@@ -61,511 +78,650 @@ try {
   console.error("AgentV 3D lab could not initialize WebGL.", error);
 }
 
+function fract(value) {
+  return value - Math.floor(value);
+}
+
+function deterministic(index, salt = 0) {
+  return fract(Math.sin((index + 1) * 12.9898 + salt * 78.233) * 43758.5453);
+}
+
+function disposeMaterial(material) {
+  for (const key of [
+    "map",
+    "alphaMap",
+    "aoMap",
+    "bumpMap",
+    "emissiveMap",
+    "envMap",
+    "metalnessMap",
+    "normalMap",
+    "roughnessMap",
+  ]) {
+    material[key]?.dispose?.();
+  }
+  material.dispose();
+}
+
+function disposeObject(root) {
+  root.traverse((object) => {
+    object.geometry?.dispose?.();
+    if (object.material) {
+      const materials = Array.isArray(object.material)
+        ? object.material
+        : [object.material];
+      materials.forEach(disposeMaterial);
+    }
+  });
+}
+
+function clearModel() {
+  if (!activeModel) return;
+  activeModel.dispose?.();
+  modelRoot.remove(activeModel.root);
+  disposeObject(activeModel.root);
+  activeModel = null;
+}
+
+function createStars(count, radiusMin, radiusMax, size, opacity) {
+  const positions = [];
+  const colors = [];
+  const cool = new THREE.Color(0x99dbff);
+  const warm = new THREE.Color(0xffd8b0);
+  for (let index = 0; index < count; index += 1) {
+    const radius = radiusMin + deterministic(index, 1) * (radiusMax - radiusMin);
+    const azimuth = deterministic(index, 2) * Math.PI * 2;
+    const elevation = Math.asin(deterministic(index, 3) * 2 - 1);
+    positions.push(
+      Math.cos(azimuth) * Math.cos(elevation) * radius,
+      Math.sin(elevation) * radius,
+      Math.sin(azimuth) * Math.cos(elevation) * radius,
+    );
+    const color = cool.clone().lerp(warm, deterministic(index, 4));
+    colors.push(color.r, color.g, color.b);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  return new THREE.Points(
+    geometry,
+    new THREE.PointsMaterial({
+      size,
+      transparent: true,
+      opacity,
+      sizeAttenuation: true,
+      vertexColors: true,
+      depthWrite: false,
+    }),
+  );
+}
+
+function createGlowTexture() {
+  const textureCanvas = document.createElement("canvas");
+  textureCanvas.width = 256;
+  textureCanvas.height = 256;
+  const context = textureCanvas.getContext("2d");
+  const gradient = context.createRadialGradient(128, 128, 8, 128, 128, 128);
+  gradient.addColorStop(0, "rgba(255,244,190,0.96)");
+  gradient.addColorStop(0.2, "rgba(255,167,68,0.58)");
+  gradient.addColorStop(0.55, "rgba(255,87,24,0.16)");
+  gradient.addColorStop(1, "rgba(255,65,10,0)");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 256, 256);
+  const texture = new THREE.CanvasTexture(textureCanvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function createPlanetTexture(body, index) {
+  const textureCanvas = document.createElement("canvas");
+  textureCanvas.width = 384;
+  textureCanvas.height = 192;
+  const context = textureCanvas.getContext("2d");
+  const base = new THREE.Color(body.color);
+  const top = base.clone().offsetHSL(0.01, 0.04, 0.12).getStyle();
+  const bottom = base.clone().offsetHSL(-0.01, -0.02, -0.13).getStyle();
+  const gradient = context.createLinearGradient(0, 0, 0, textureCanvas.height);
+  gradient.addColorStop(0, top);
+  gradient.addColorStop(0.5, base.getStyle());
+  gradient.addColorStop(1, bottom);
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, textureCanvas.width, textureCanvas.height);
+
+  if (["Jupiter", "Saturn", "Uranus", "Neptune", "Venus"].includes(body.name)) {
+    const bands = body.name === "Jupiter" ? 20 : 13;
+    for (let band = 0; band < bands; band += 1) {
+      const y = (band / bands) * textureCanvas.height;
+      const light = deterministic(band, index + 10) * 0.18 - 0.09;
+      context.fillStyle = base.clone().offsetHSL(0, 0.03, light).getStyle();
+      context.globalAlpha = body.name === "Uranus" ? 0.22 : 0.5;
+      context.fillRect(0, y, textureCanvas.width, textureCanvas.height / bands * 0.58);
+    }
+    context.globalAlpha = 1;
+  }
+
+  if (body.name === "Earth") {
+    context.fillStyle = "rgba(58,113,76,0.92)";
+    context.beginPath();
+    context.moveTo(25, 70);
+    context.bezierCurveTo(60, 40, 88, 57, 104, 92);
+    context.bezierCurveTo(120, 126, 83, 150, 55, 128);
+    context.bezierCurveTo(36, 112, 14, 105, 25, 70);
+    context.fill();
+    context.beginPath();
+    context.moveTo(175, 45);
+    context.bezierCurveTo(220, 28, 270, 58, 260, 91);
+    context.bezierCurveTo(250, 120, 302, 127, 330, 103);
+    context.bezierCurveTo(310, 153, 218, 158, 190, 112);
+    context.closePath();
+    context.fill();
+    context.strokeStyle = "rgba(255,255,255,0.52)";
+    context.lineWidth = 5;
+    for (let cloud = 0; cloud < 6; cloud += 1) {
+      const y = 24 + cloud * 28;
+      context.beginPath();
+      context.moveTo((cloud * 63) % 170, y);
+      context.bezierCurveTo(120, y - 9, 240, y + 13, 384, y - 4);
+      context.stroke();
+    }
+  } else {
+    const spotCount = body.name === "Jupiter" ? 18 : 34;
+    for (let spot = 0; spot < spotCount; spot += 1) {
+      const x = deterministic(spot, index + 21) * textureCanvas.width;
+      const y = deterministic(spot, index + 31) * textureCanvas.height;
+      const width = 4 + deterministic(spot, index + 41) * 30;
+      context.fillStyle = base.clone().offsetHSL(
+        deterministic(spot, 9) * 0.04 - 0.02,
+        0,
+        deterministic(spot, 10) * 0.22 - 0.14,
+      ).getStyle();
+      context.globalAlpha = 0.2 + deterministic(spot, 11) * 0.28;
+      context.beginPath();
+      context.ellipse(x, y, width, width * 0.42, 0, 0, Math.PI * 2);
+      context.fill();
+    }
+    context.globalAlpha = 1;
+  }
+
+  if (body.name === "Jupiter") {
+    context.fillStyle = "rgba(154,63,42,0.72)";
+    context.beginPath();
+    context.ellipse(292, 118, 26, 12, -0.08, 0, Math.PI * 2);
+    context.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(textureCanvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+  return texture;
+}
+
+function createOrbit(radius, eccentricity, inclinationDeg) {
+  const points = [];
+  for (let index = 0; index < 192; index += 1) {
+    const angle = (index / 192) * Math.PI * 2;
+    points.push(
+      new THREE.Vector3(
+        Math.cos(angle) * radius,
+        0,
+        Math.sin(angle) * radius * (1 - eccentricity * 0.42),
+      ),
+    );
+  }
+  const line = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints(points),
+    new THREE.LineBasicMaterial({
+      color: 0x5a91a8,
+      transparent: true,
+      opacity: 0.19,
+      depthWrite: false,
+    }),
+  );
+  line.rotation.z = THREE.MathUtils.degToRad(inclinationDeg);
+  return line;
+}
+
+function createAtmosphere(radius, color, opacity) {
+  return new THREE.Mesh(
+    new THREE.SphereGeometry(radius * 1.045, 36, 24),
+    new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity,
+      side: THREE.BackSide,
+      depthWrite: false,
+    }),
+  );
+}
+
+function buildSolarSystem() {
+  const root = new THREE.Group();
+  const orbiters = [];
+  const eccentricities = [0.2056, 0.0068, 0.0167, 0.0934, 0.0489, 0.0565, 0.0472, 0.0086];
+
+  const sunTexture = createPlanetTexture(
+    { name: "Sun", color: 0xffa83d },
+    99,
+  );
+  const sun = new THREE.Mesh(
+    new THREE.SphereGeometry(SUN_VISUAL_RADIUS, 72, 48),
+    new THREE.MeshStandardMaterial({
+      map: sunTexture,
+      emissive: 0xff7a22,
+      emissiveMap: sunTexture,
+      emissiveIntensity: 1.55,
+      roughness: 0.82,
+      metalness: 0,
+    }),
+  );
+  root.add(sun);
+
+  const sunGlow = new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map: createGlowTexture(),
+      color: 0xff8a2a,
+      transparent: true,
+      opacity: 0.78,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
+  sunGlow.scale.set(3.7, 3.7, 1);
+  root.add(sunGlow);
+
+  const sunLight = new THREE.PointLight(0xffba73, 68, 30, 1.4);
+  root.add(sunLight);
+
+  SOLAR_SYSTEM_BODIES.forEach((body, index) => {
+    const orbitRadius = visualOrbitRadius(body.orbitAu);
+    const planetRadius = visualPlanetRadius(body.radiusKm);
+    root.add(createOrbit(orbitRadius, eccentricities[index], body.inclinationDeg));
+
+    const planetGroup = new THREE.Group();
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(planetRadius, 48, 32),
+      new THREE.MeshStandardMaterial({
+        map: createPlanetTexture(body, index),
+        color: 0xffffff,
+        roughness: body.name === "Earth" ? 0.58 : 0.74,
+        metalness: 0,
+      }),
+    );
+    mesh.rotation.z = THREE.MathUtils.degToRad(body.axialTiltDeg);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    planetGroup.add(mesh);
+
+    if (body.name === "Earth") {
+      planetGroup.add(createAtmosphere(planetRadius, 0x75cfff, 0.18));
+      const moonPivot = new THREE.Group();
+      const moon = new THREE.Mesh(
+        new THREE.SphereGeometry(0.055, 24, 16),
+        new THREE.MeshStandardMaterial({ color: 0xa9adb3, roughness: 0.96 }),
+      );
+      moon.position.x = planetRadius + 0.18;
+      moonPivot.add(moon);
+      planetGroup.add(moonPivot);
+      planetGroup.userData.moonPivot = moonPivot;
+    }
+
+    if (["Venus", "Jupiter", "Saturn", "Uranus", "Neptune"].includes(body.name)) {
+      const atmosphereColor = {
+        Venus: 0xffc979,
+        Jupiter: 0xd9b28b,
+        Saturn: 0xe3ca91,
+        Uranus: 0x9ee9ee,
+        Neptune: 0x557ee7,
+      }[body.name];
+      planetGroup.add(createAtmosphere(planetRadius, atmosphereColor, body.name === "Venus" ? 0.13 : 0.08));
+    }
+
+    if (body.name === "Saturn" || body.name === "Uranus") {
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(
+          planetRadius * (body.name === "Saturn" ? 1.3 : 1.45),
+          planetRadius * (body.name === "Saturn" ? 2.15 : 1.82),
+          128,
+        ),
+        new THREE.MeshStandardMaterial({
+          color: body.name === "Saturn" ? 0xc7af79 : 0x8fbfc2,
+          transparent: true,
+          opacity: body.name === "Saturn" ? 0.68 : 0.24,
+          side: THREE.DoubleSide,
+          roughness: 0.88,
+          depthWrite: false,
+        }),
+      );
+      ring.rotation.x = Math.PI / 2;
+      ring.rotation.z = THREE.MathUtils.degToRad(body.axialTiltDeg * 0.35);
+      planetGroup.add(ring);
+    }
+
+    root.add(planetGroup);
+    orbiters.push({
+      body,
+      group: planetGroup,
+      mesh,
+      orbitRadius,
+      eccentricity: eccentricities[index],
+      speed: 0.105 * Math.pow(365.25 / body.orbitalDays, 0.38),
+    });
+  });
+
+  const asteroidGeometry = new THREE.IcosahedronGeometry(0.018, 0);
+  const asteroidMaterial = new THREE.MeshStandardMaterial({
+    color: 0x807a73,
+    roughness: 0.95,
+    metalness: 0.04,
+  });
+  const asteroidBelt = new THREE.InstancedMesh(asteroidGeometry, asteroidMaterial, 260);
+  const matrix = new THREE.Matrix4();
+  const position = new THREE.Vector3();
+  const quaternion = new THREE.Quaternion();
+  const scale = new THREE.Vector3();
+  for (let index = 0; index < 260; index += 1) {
+    const angle = deterministic(index, 51) * Math.PI * 2;
+    const radius = 3.12 + (deterministic(index, 52) - 0.5) * 0.38;
+    position.set(
+      Math.cos(angle) * radius,
+      (deterministic(index, 53) - 0.5) * 0.12,
+      Math.sin(angle) * radius,
+    );
+    quaternion.setFromEuler(
+      new THREE.Euler(
+        deterministic(index, 54) * Math.PI,
+        deterministic(index, 55) * Math.PI,
+        deterministic(index, 56) * Math.PI,
+      ),
+    );
+    const size = 0.45 + deterministic(index, 57) * 1.25;
+    scale.setScalar(size);
+    matrix.compose(position, quaternion, scale);
+    asteroidBelt.setMatrixAt(index, matrix);
+  }
+  asteroidBelt.instanceMatrix.needsUpdate = true;
+  root.add(asteroidBelt);
+
+  return {
+    root,
+    cameraWide: new THREE.Vector3(0, 6.3, 11.8),
+    cameraNarrow: new THREE.Vector3(0, 9.4, 15.2),
+    target: new THREE.Vector3(0, 0, 0),
+    diagnostics: {
+      bodyCount: SOLAR_SYSTEM_BODIES.length,
+      maxOrbit: visualOrbitRadius(SOLAR_SYSTEM_BODIES.at(-1).orbitAu),
+      scale: "non-linear-visualized",
+    },
+    update(time) {
+      sun.rotation.y = time * 0.055;
+      sunGlow.material.opacity = 0.72 + Math.sin(time * 1.15) * 0.06;
+      asteroidBelt.rotation.y = time * 0.012;
+      orbiters.forEach((orbiter, index) => {
+        const angle = orbiter.body.phase + time * orbiter.speed;
+        orbiter.group.position.set(
+          Math.cos(angle) * orbiter.orbitRadius,
+          Math.sin(angle * 0.7 + index) * 0.018,
+          Math.sin(angle) * orbiter.orbitRadius * (1 - orbiter.eccentricity * 0.42),
+        );
+        orbiter.mesh.rotation.y = time * (0.15 + index * 0.018);
+        orbiter.group.userData.moonPivot &&
+          (orbiter.group.userData.moonPivot.rotation.y = time * 0.72);
+      });
+    },
+  };
+}
+
+function metallicMaterial(color, roughness = 0.22, emissive = 0x000000) {
+  return new THREE.MeshPhysicalMaterial({
+    color,
+    metalness: 0.86,
+    roughness,
+    clearcoat: 0.4,
+    clearcoatRoughness: 0.24,
+    emissive,
+    emissiveIntensity: emissive ? 0.22 : 0,
+  });
+}
+
+function buildPlanetaryGearbox() {
+  if (!window.PlanetaryGearKit) {
+    throw new Error("Validated PlanetaryGearKit failed to load.");
+  }
+  const root = new THREE.Group();
+  const kit = window.PlanetaryGearKit.create(THREE, {
+    moduleScale: 0.076,
+    depth: 0.46,
+    ringWall: 0.62,
+    sunMaterial: metallicMaterial(0xff7b3a, 0.2, 0x4a1204),
+    planetMaterial: metallicMaterial(0x75ddf7, 0.19, 0x052d39),
+    ringMaterial: metallicMaterial(0x2f7692, 0.24, 0x051a24),
+    carrierMaterial: metallicMaterial(0x78cce2, 0.2, 0x07313e),
+  });
+  root.add(kit.group);
+
+  const centerDistance = (kit.config.sunTeeth + kit.config.planetTeeth) * 0.076;
+  const carrierMaterial = metallicMaterial(0x6ebbd1, 0.24, 0x062a36);
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.43, 0.43, 0.26, 48), carrierMaterial);
+  hub.rotation.x = Math.PI / 2;
+  hub.position.z = -0.36;
+  kit.carrier.add(hub);
+  const carrierRing = new THREE.Mesh(new THREE.TorusGeometry(1.72, 0.12, 18, 96), carrierMaterial);
+  carrierRing.position.z = -0.28;
+  kit.carrier.add(carrierRing);
+  for (let index = 0; index < kit.config.planetCount; index += 1) {
+    const angle = (index / kit.config.planetCount) * Math.PI * 2;
+    const arm = new THREE.Mesh(
+      new THREE.BoxGeometry(centerDistance, 0.22, 0.16),
+      carrierMaterial,
+    );
+    arm.position.set(
+      Math.cos(angle) * centerDistance * 0.5,
+      Math.sin(angle) * centerDistance * 0.5,
+      -0.3,
+    );
+    arm.rotation.z = angle;
+    arm.castShadow = true;
+    kit.carrier.add(arm);
+    const axle = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.13, 0.13, 0.9, 28),
+      metallicMaterial(0xc7d5da, 0.16),
+    );
+    axle.rotation.x = Math.PI / 2;
+    axle.position.set(
+      Math.cos(angle) * centerDistance,
+      Math.sin(angle) * centerDistance,
+      -0.08,
+    );
+    kit.carrier.add(axle);
+  }
+
+  const casing = new THREE.Mesh(
+    new THREE.CylinderGeometry(3.92, 3.92, 0.8, 128, 1, true),
+    new THREE.MeshPhysicalMaterial({
+      color: 0x3b7890,
+      metalness: 0.36,
+      roughness: 0.18,
+      transparent: true,
+      opacity: 0.16,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      clearcoat: 0.5,
+    }),
+  );
+  casing.rotation.x = Math.PI / 2;
+  casing.position.z = -0.06;
+  root.add(casing);
+
+  const backPlate = new THREE.Mesh(
+    new THREE.CylinderGeometry(3.92, 3.92, 0.14, 128),
+    new THREE.MeshStandardMaterial({
+      color: 0x101a22,
+      metalness: 0.58,
+      roughness: 0.42,
+    }),
+  );
+  backPlate.rotation.x = Math.PI / 2;
+  backPlate.position.z = -0.57;
+  backPlate.receiveShadow = true;
+  root.add(backPlate);
+
+  const shaftMaterial = metallicMaterial(0xd5e6eb, 0.14);
+  const inputShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 1.8, 40), shaftMaterial);
+  inputShaft.rotation.x = Math.PI / 2;
+  inputShaft.position.z = 1.02;
+  kit.sun.add(inputShaft);
+  const outputShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 1.5, 40), shaftMaterial);
+  outputShaft.rotation.x = Math.PI / 2;
+  outputShaft.position.z = -1.0;
+  kit.carrier.add(outputShaft);
+
+  for (const z of [-0.72, 0.61]) {
+    const bearing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.48, 0.09, 16, 56),
+      metallicMaterial(0x5a6670, 0.2),
+    );
+    bearing.position.z = z;
+    root.add(bearing);
+  }
+
+  root.rotation.x = -0.16;
+  return {
+    root,
+    cameraWide: new THREE.Vector3(1.8, 5.5, 13.8),
+    cameraNarrow: new THREE.Vector3(1.2, 7.8, 16.2),
+    target: new THREE.Vector3(0, 0, -0.05),
+    diagnostics: {
+      sunTeeth: kit.config.sunTeeth,
+      planetTeeth: kit.config.planetTeeth,
+      ringTeeth: kit.config.ringTeeth,
+      ratioFixedRing: kit.kinematics.ratioFixedRing,
+      source: "three.planetary-gear-kit",
+    },
+    update(time) {
+      kit.renderFixedRingAt(time, 0.58);
+    },
+  };
+}
+
+function buildUniversalJoint() {
+  if (!window.UniversalJointKit) {
+    throw new Error("Validated UniversalJointKit failed to load.");
+  }
+  const root = new THREE.Group();
+  const kit = window.UniversalJointKit.create(THREE, {
+    shaftLength: 4.2,
+    yokeSpan: 1.35,
+  });
+  for (const material of Object.values(kit.materials)) {
+    if ("metalness" in material) material.metalness = Math.max(material.metalness, 0.72);
+    if ("roughness" in material) material.roughness = Math.min(material.roughness, 0.24);
+  }
+  kit.crossCenter.geometry.scale(0.78, 0.78, 0.78);
+  kit.materials.cup.color.set(0x587481);
+  kit.materials.cup.emissive.set(0x07161d);
+  kit.materials.cup.emissiveIntensity = 0.22;
+  kit.materials.accent.color.set(0x385867);
+  root.add(kit.group);
+
+  const floor = new THREE.Mesh(
+    new THREE.CircleGeometry(7.8, 96),
+    new THREE.MeshStandardMaterial({
+      color: 0x070b11,
+      metalness: 0.3,
+      roughness: 0.86,
+      transparent: true,
+      opacity: 0.86,
+    }),
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -2.28;
+  floor.receiveShadow = true;
+  root.add(floor);
+
+  const halo = new THREE.Mesh(
+    new THREE.TorusGeometry(1.3, 0.025, 10, 128),
+    new THREE.MeshBasicMaterial({
+      color: 0x72dfff,
+      transparent: true,
+      opacity: 0.18,
+    }),
+  );
+  halo.rotation.y = Math.PI / 2;
+  root.add(halo);
+
+  const beta = THREE.MathUtils.degToRad(25);
+  const operatingAnglePoints = [];
+  for (let index = 0; index <= 48; index += 1) {
+    const angle = (beta * index) / 48;
+    operatingAnglePoints.push(
+      new THREE.Vector3(Math.cos(angle) * 1.78, 0.38, Math.sin(angle) * 1.78),
+    );
+  }
+  const operatingAngleArc = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(operatingAnglePoints),
+    new THREE.LineBasicMaterial({
+      color: 0xffd070,
+      transparent: true,
+      opacity: 0.88,
+      depthTest: false,
+    }),
+  );
+  operatingAngleArc.renderOrder = 4;
+  root.add(operatingAngleArc);
+  root.scale.setScalar(1.08);
+  let lastState = kit.setState({ inputAngle: 0, beta, showAngle: 1 });
+  root.rotation.set(0, 0, 0);
+  return {
+    root,
+    cameraWide: new THREE.Vector3(0, 9.4, 8.6),
+    cameraNarrow: new THREE.Vector3(0, 20, 20),
+    target: new THREE.Vector3(0, 0, 0),
+    diagnostics: {
+      betaDeg: 25,
+      source: "three.universal-joint-kit",
+      get speedRatio() {
+        return lastState.speedRatio;
+      },
+    },
+    update(time) {
+      lastState = kit.setState({
+        inputAngle: time * 0.62,
+        beta,
+        explode: 0,
+        macroHighlight: (Math.sin(time * 0.85) + 1) * 0.18,
+        showAngle: 1,
+      });
+      halo.rotation.z = time * 0.08;
+    },
+  };
+}
+
 if (renderer) {
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+  const compactDevice = window.matchMedia("(max-width: 640px)").matches;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, compactDevice ? 1.25 : 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.25;
+  renderer.toneMappingExposure = 1.18;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-  scene.fog = new THREE.FogExp2(0x03050a, 0.025);
+  scene.fog = new THREE.FogExp2(0x02040a, 0.016);
   scene.add(modelRoot);
+  scene.add(createStars(920, 20, 68, 0.055, 0.82));
+  scene.add(createStars(160, 14, 42, 0.105, 0.5));
 
-  const ambient = new THREE.HemisphereLight(0xcce8ff, 0x16051d, 1.35);
+  const ambient = new THREE.HemisphereLight(0xb7d9ef, 0x120c18, 0.95);
   scene.add(ambient);
-
-  const keyLight = new THREE.DirectionalLight(0xffffff, 3.2);
-  keyLight.position.set(5, 8, 6);
+  const keyLight = new THREE.DirectionalLight(0xf5fbff, 3.4);
+  keyLight.position.set(6, 9, 7);
   keyLight.castShadow = true;
   keyLight.shadow.mapSize.set(1024, 1024);
   scene.add(keyLight);
-
-  const purpleRim = new THREE.PointLight(0x9a35b1, 22, 24, 2);
-  purpleRim.position.set(-5, 3, -2);
+  const purpleRim = new THREE.PointLight(0x9a35b1, 19, 28, 2);
+  purpleRim.position.set(-6, 3, -4);
   scene.add(purpleRim);
-
-  const cyanRim = new THREE.PointLight(0x78ddff, 15, 20, 2);
-  cyanRim.position.set(5, -2, 4);
+  const cyanRim = new THREE.PointLight(0x78ddff, 15, 24, 2);
+  cyanRim.position.set(6, -1, 5);
   scene.add(cyanRim);
-
-  const starGeometry = new THREE.BufferGeometry();
-  const starPositions = [];
-  for (let index = 0; index < 420; index += 1) {
-    const radius = 18 + Math.random() * 38;
-    const angle = Math.random() * Math.PI * 2;
-    const elevation = (Math.random() - 0.5) * Math.PI;
-    starPositions.push(
-      Math.cos(angle) * Math.cos(elevation) * radius,
-      Math.sin(elevation) * radius,
-      Math.sin(angle) * Math.cos(elevation) * radius,
-    );
-  }
-  starGeometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(starPositions, 3),
-  );
-  const labStars = new THREE.Points(
-    starGeometry,
-    new THREE.PointsMaterial({
-      color: 0xb48ac0,
-      size: 0.065,
-      transparent: true,
-      opacity: 0.72,
-      sizeAttenuation: true,
-    }),
-  );
-  scene.add(labStars);
-
-  function disposeObject(root) {
-    root.traverse((object) => {
-      if (object.geometry) {
-        object.geometry.dispose();
-      }
-      if (object.material) {
-        const materials = Array.isArray(object.material)
-          ? object.material
-          : [object.material];
-        materials.forEach((material) => material.dispose());
-      }
-    });
-  }
-
-  function clearModel() {
-    if (!activeModel) {
-      return;
-    }
-    modelRoot.remove(activeModel.root);
-    disposeObject(activeModel.root);
-    activeModel = null;
-  }
-
-  function createOrbit(radius, color = 0x44616f, opacity = 0.38) {
-    const points = [];
-    for (let index = 0; index <= 128; index += 1) {
-      const angle = (index / 128) * Math.PI * 2;
-      points.push(
-        new THREE.Vector3(
-          Math.cos(angle) * radius,
-          0,
-          Math.sin(angle) * radius,
-        ),
-      );
-    }
-    return new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(points),
-      new THREE.LineBasicMaterial({ color, transparent: true, opacity }),
-    );
-  }
-
-  function buildSolarSystem() {
-    const root = new THREE.Group();
-    root.rotation.x = -0.12;
-    const orbiters = [];
-
-    const sunMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffc45b,
-      emissive: 0xff6a18,
-      emissiveIntensity: 3.5,
-      roughness: 0.68,
-    });
-    const sun = new THREE.Mesh(
-      new THREE.SphereGeometry(0.82, 64, 64),
-      sunMaterial,
-    );
-    root.add(sun);
-
-    const sunGlow = new THREE.Mesh(
-      new THREE.SphereGeometry(1.05, 40, 40),
-      new THREE.MeshBasicMaterial({
-        color: 0xff8b35,
-        transparent: true,
-        opacity: 0.09,
-        side: THREE.BackSide,
-      }),
-    );
-    root.add(sunGlow);
-
-    const sunLight = new THREE.PointLight(0xffb45d, 46, 22, 1.55);
-    root.add(sunLight);
-
-    const planets = [
-      { radius: 1.45, size: 0.13, color: 0x9b8b7a, speed: 1.45 },
-      { radius: 2.05, size: 0.21, color: 0xd7a66f, speed: 1.08 },
-      { radius: 2.75, size: 0.24, color: 0x3c83c8, speed: 0.84, earth: true },
-      { radius: 3.42, size: 0.18, color: 0xc95f3d, speed: 0.67 },
-      { radius: 4.38, size: 0.49, color: 0xc9a47e, speed: 0.42 },
-      { radius: 5.55, size: 0.42, color: 0xd5be8f, speed: 0.31, rings: true },
-    ];
-
-    planets.forEach((planet, index) => {
-      root.add(createOrbit(planet.radius));
-      const pivot = new THREE.Group();
-      const phase = index * 1.17;
-      pivot.rotation.y = phase;
-
-      const material = new THREE.MeshStandardMaterial({
-        color: planet.color,
-        roughness: planet.earth ? 0.55 : 0.78,
-        metalness: 0.03,
-      });
-      const mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(planet.size, 40, 40),
-        material,
-      );
-      mesh.position.x = planet.radius;
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      pivot.add(mesh);
-
-      if (planet.earth) {
-        const atmosphere = new THREE.Mesh(
-          new THREE.SphereGeometry(planet.size * 1.08, 40, 40),
-          new THREE.MeshBasicMaterial({
-            color: 0x87dfff,
-            transparent: true,
-            opacity: 0.12,
-            side: THREE.BackSide,
-          }),
-        );
-        atmosphere.position.copy(mesh.position);
-        pivot.add(atmosphere);
-
-        const moonPivot = new THREE.Group();
-        moonPivot.position.copy(mesh.position);
-        const moon = new THREE.Mesh(
-          new THREE.SphereGeometry(0.055, 20, 20),
-          new THREE.MeshStandardMaterial({ color: 0xb9bcc4, roughness: 1 }),
-        );
-        moon.position.x = 0.42;
-        moonPivot.add(moon);
-        pivot.add(moonPivot);
-        orbiters.push({
-          pivot: moonPivot,
-          speed: 2.5,
-          mesh: moon,
-          phase: 0,
-        });
-      }
-
-      if (planet.rings) {
-        const ring = new THREE.Mesh(
-          new THREE.RingGeometry(planet.size * 1.25, planet.size * 2.05, 96),
-          new THREE.MeshStandardMaterial({
-            color: 0xbca779,
-            transparent: true,
-            opacity: 0.72,
-            side: THREE.DoubleSide,
-            roughness: 0.8,
-          }),
-        );
-        ring.position.copy(mesh.position);
-        ring.rotation.x = Math.PI / 2.45;
-        pivot.add(ring);
-      }
-
-      root.add(pivot);
-      orbiters.push({ pivot, speed: planet.speed, mesh, phase });
-    });
-
-    camera.position.set(0, 6.8, 10.8);
-    camera.lookAt(0, 0, 0);
-
-    return {
-      root,
-      update(time) {
-        sun.rotation.y = time * 0.08;
-        sunGlow.scale.setScalar(1 + Math.sin(time * 1.4) * 0.03);
-        orbiters.forEach((orbiter, index) => {
-          orbiter.pivot.rotation.y =
-            orbiter.phase + time * 0.1 * orbiter.speed;
-          orbiter.mesh.rotation.y = time * (0.16 + index * 0.025);
-        });
-      },
-    };
-  }
-
-  function createGear(teeth, rootRadius, toothDepth, thickness, color) {
-    const shape = new THREE.Shape();
-    const segments = teeth * 4;
-    for (let index = 0; index <= segments; index += 1) {
-      const angle = (index / segments) * Math.PI * 2;
-      const toothPhase = index % 4;
-      const radius =
-        toothPhase === 1 || toothPhase === 2
-          ? rootRadius + toothDepth
-          : rootRadius;
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      if (index === 0) {
-        shape.moveTo(x, y);
-      } else {
-        shape.lineTo(x, y);
-      }
-    }
-
-    const hole = new THREE.Path();
-    hole.absarc(0, 0, rootRadius * 0.28, 0, Math.PI * 2, true);
-    shape.holes.push(hole);
-
-    const geometry = new THREE.ExtrudeGeometry(shape, {
-      depth: thickness,
-      bevelEnabled: true,
-      bevelSegments: 2,
-      bevelSize: 0.035,
-      bevelThickness: 0.035,
-      curveSegments: 8,
-    });
-    geometry.center();
-
-    const mesh = new THREE.Mesh(
-      geometry,
-      new THREE.MeshPhysicalMaterial({
-        color,
-        metalness: 0.86,
-        roughness: 0.27,
-        clearcoat: 0.35,
-        clearcoatRoughness: 0.25,
-      }),
-    );
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    return mesh;
-  }
-
-  function buildPlanetaryGearbox() {
-    const root = new THREE.Group();
-    root.rotation.x = -0.35;
-    const carrier = new THREE.Group();
-    root.add(carrier);
-
-    const plate = new THREE.Mesh(
-      new THREE.CylinderGeometry(4.35, 4.35, 0.16, 96),
-      new THREE.MeshPhysicalMaterial({
-        color: 0x1b2430,
-        metalness: 0.72,
-        roughness: 0.32,
-        transparent: true,
-        opacity: 0.58,
-      }),
-    );
-    plate.rotation.x = Math.PI / 2;
-    plate.position.z = -0.38;
-    plate.receiveShadow = true;
-    root.add(plate);
-
-    const sun = createGear(18, 0.94, 0.2, 0.52, 0x8ee7ff);
-    root.add(sun);
-
-    const planets = [];
-    for (let index = 0; index < 3; index += 1) {
-      const angle = (index / 3) * Math.PI * 2;
-      const gear = createGear(14, 0.72, 0.18, 0.46, 0xb16ac0);
-      gear.position.set(Math.cos(angle) * 2.15, Math.sin(angle) * 2.15, 0);
-      carrier.add(gear);
-      planets.push(gear);
-
-      const axle = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.16, 0.16, 0.82, 24),
-        new THREE.MeshStandardMaterial({
-          color: 0xdde8ef,
-          metalness: 0.9,
-          roughness: 0.2,
-        }),
-      );
-      axle.rotation.x = Math.PI / 2;
-      axle.position.copy(gear.position);
-      carrier.add(axle);
-    }
-
-    const ring = new THREE.Group();
-    const ringBody = new THREE.Mesh(
-      new THREE.TorusGeometry(3.55, 0.34, 20, 120),
-      new THREE.MeshPhysicalMaterial({
-        color: 0x71567b,
-        metalness: 0.82,
-        roughness: 0.3,
-        clearcoat: 0.25,
-      }),
-    );
-    ring.add(ringBody);
-
-    for (let index = 0; index < 42; index += 1) {
-      const angle = (index / 42) * Math.PI * 2;
-      const tooth = new THREE.Mesh(
-        new THREE.BoxGeometry(0.16, 0.42, 0.5),
-        new THREE.MeshStandardMaterial({
-          color: 0x9674a0,
-          metalness: 0.82,
-          roughness: 0.28,
-        }),
-      );
-      tooth.position.set(Math.cos(angle) * 3.2, Math.sin(angle) * 3.2, 0);
-      tooth.rotation.z = angle;
-      tooth.castShadow = true;
-      ring.add(tooth);
-    }
-    root.add(ring);
-
-    const centerShaft = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.25, 0.25, 1.3, 32),
-      new THREE.MeshStandardMaterial({
-        color: 0xe6f6ff,
-        metalness: 0.95,
-        roughness: 0.18,
-      }),
-    );
-    centerShaft.rotation.x = Math.PI / 2;
-    root.add(centerShaft);
-
-    const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(7, 96),
-      new THREE.MeshStandardMaterial({
-        color: 0x090d14,
-        roughness: 1,
-        transparent: true,
-        opacity: 0.82,
-      }),
-    );
-    floor.position.z = -0.58;
-    floor.receiveShadow = true;
-    root.add(floor);
-
-    camera.position.set(0, 4.8, 10.8);
-    camera.lookAt(0, 0, 0);
-
-    return {
-      root,
-      update(time) {
-        sun.rotation.z = time * 0.66;
-        carrier.rotation.z = -time * 0.16;
-        planets.forEach((gear) => {
-          gear.rotation.z = -time * 0.94;
-        });
-        ring.rotation.z = time * 0.04;
-      },
-    };
-  }
-
-  function metallicMaterial(color) {
-    return new THREE.MeshPhysicalMaterial({
-      color,
-      metalness: 0.9,
-      roughness: 0.23,
-      clearcoat: 0.35,
-      clearcoatRoughness: 0.22,
-    });
-  }
-
-  function createYoke(color) {
-    const yoke = new THREE.Group();
-    const material = metallicMaterial(color);
-    const bridge = new THREE.Mesh(
-      new THREE.BoxGeometry(0.5, 2.3, 0.55),
-      material,
-    );
-    bridge.castShadow = true;
-    yoke.add(bridge);
-
-    for (const direction of [-1, 1]) {
-      const arm = new THREE.Mesh(
-        new THREE.BoxGeometry(1.45, 0.42, 0.55),
-        material,
-      );
-      arm.position.set(0.52, direction * 0.94, 0);
-      arm.castShadow = true;
-      yoke.add(arm);
-    }
-    return yoke;
-  }
-
-  function buildUniversalJoint() {
-    const root = new THREE.Group();
-    root.rotation.set(-0.2, -0.35, 0);
-
-    const input = new THREE.Group();
-    const inputShaft = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.34, 0.34, 4.6, 40),
-      metallicMaterial(0x8ee7ff),
-    );
-    inputShaft.rotation.z = Math.PI / 2;
-    inputShaft.position.x = -3.35;
-    inputShaft.castShadow = true;
-    input.add(inputShaft);
-    const inputYoke = createYoke(0x79cce8);
-    inputYoke.position.x = -0.9;
-    input.add(inputYoke);
-    root.add(input);
-
-    const outputPivot = new THREE.Group();
-    outputPivot.rotation.y = -0.48;
-    const outputShaft = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.34, 0.34, 4.6, 40),
-      metallicMaterial(0xa75dbc),
-    );
-    outputShaft.rotation.z = Math.PI / 2;
-    outputShaft.position.x = 3.35;
-    outputShaft.castShadow = true;
-    outputPivot.add(outputShaft);
-    const outputYoke = createYoke(0xa75dbc);
-    outputYoke.position.x = 0.9;
-    outputYoke.rotation.x = Math.PI / 2;
-    outputPivot.add(outputYoke);
-    root.add(outputPivot);
-
-    const cross = new THREE.Group();
-    const crossMaterial = metallicMaterial(0xe3d3e8);
-    const horizontalPin = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.22, 0.22, 2.35, 32),
-      crossMaterial,
-    );
-    horizontalPin.rotation.z = Math.PI / 2;
-    horizontalPin.castShadow = true;
-    cross.add(horizontalPin);
-
-    const verticalPin = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.22, 0.22, 2.35, 32),
-      crossMaterial,
-    );
-    verticalPin.castShadow = true;
-    cross.add(verticalPin);
-
-    const hub = new THREE.Mesh(
-      new THREE.SphereGeometry(0.48, 40, 40),
-      metallicMaterial(0xf2ebf5),
-    );
-    hub.castShadow = true;
-    cross.add(hub);
-    root.add(cross);
-
-    const support = new THREE.Mesh(
-      new THREE.CylinderGeometry(4.9, 4.9, 0.18, 96),
-      new THREE.MeshStandardMaterial({
-        color: 0x101620,
-        metalness: 0.45,
-        roughness: 0.65,
-        transparent: true,
-        opacity: 0.72,
-      }),
-    );
-    support.rotation.x = Math.PI / 2;
-    support.position.y = -2.3;
-    support.receiveShadow = true;
-    root.add(support);
-
-    camera.position.set(0, 3.8, 11.8);
-    camera.lookAt(0, 0, 0);
-
-    return {
-      root,
-      update(time) {
-        input.rotation.x = time * 0.58;
-        outputPivot.rotation.x = time * 0.53;
-        cross.rotation.x = time * 0.55;
-        cross.rotation.y = Math.sin(time * 0.55) * 0.22;
-      },
-    };
-  }
 
   const builders = {
     solar: buildSolarSystem,
@@ -573,29 +729,42 @@ if (renderer) {
     joint: buildUniversalJoint,
   };
 
+  function resetView() {
+    pointer.targetYaw = 0;
+    pointer.targetPitch = 0;
+  }
+
+  function applyCamera() {
+    if (!activeModel) return;
+    const compact = viewport.clientWidth < 640;
+    camera.position.copy(compact ? activeModel.cameraNarrow : activeModel.cameraWide);
+    cameraTarget.copy(activeModel.target);
+    camera.lookAt(cameraTarget);
+  }
+
   function setScene(name) {
     const builder = builders[name];
     const copy = sceneCopy[name];
-    if (!builder || !copy) {
-      return;
-    }
+    if (!builder || !copy) return;
 
     clearModel();
     animationState.activeScene = name;
     animationState.elapsed = 0;
-    pointer.targetX = 0;
-    pointer.targetY = 0;
+    resetView();
     activeModel = builder();
     modelRoot.add(activeModel.root);
+    applyCamera();
     sceneTitle.textContent = copy.title;
     sceneDescription.textContent = copy.description;
+    if (sceneMeta) sceneMeta.textContent = copy.meta;
+    if (sceneBadge) sceneBadge.textContent = copy.badge;
 
     sceneTabs.forEach((tab) => {
       const selected = tab.dataset.scene === name;
       tab.classList.toggle("is-active", selected);
       tab.setAttribute("aria-pressed", String(selected));
     });
-
+    activeModel.update(0);
     render();
   }
 
@@ -605,17 +774,16 @@ if (renderer) {
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    applyCamera();
     render();
   }
 
   function render() {
-    if (!activeModel) {
-      return;
-    }
-    activeModel.root.rotation.y +=
-      (pointer.targetX - activeModel.root.rotation.y) * 0.045;
-    activeModel.root.rotation.x +=
-      (pointer.targetY - activeModel.root.rotation.x) * 0.045;
+    if (!activeModel) return;
+    pointer.yaw += (pointer.targetYaw - pointer.yaw) * 0.055;
+    pointer.pitch += (pointer.targetPitch - pointer.pitch) * 0.055;
+    modelRoot.rotation.y = pointer.yaw;
+    modelRoot.rotation.x = pointer.pitch;
     renderer.render(scene, camera);
   }
 
@@ -625,7 +793,6 @@ if (renderer) {
       animationState.lastTime = time;
       return;
     }
-
     const delta = Math.min((time - animationState.lastTime) / 1000, 0.05);
     animationState.lastTime = time;
     if (!reducedMotion.matches) {
@@ -638,31 +805,28 @@ if (renderer) {
   sceneTabs.forEach((tab) => {
     tab.addEventListener("click", () => setScene(tab.dataset.scene));
   });
+  resetButton?.addEventListener("click", resetView);
+  resetButton?.addEventListener("pointerdown", (event) => event.stopPropagation());
+  viewport.addEventListener("dblclick", resetView);
 
   viewport.addEventListener("pointerdown", (event) => {
     animationState.dragging = true;
     animationState.dragStartX = event.clientX;
     animationState.dragStartY = event.clientY;
-    animationState.startTargetX = pointer.targetX;
-    animationState.startTargetY = pointer.targetY;
+    animationState.startYaw = pointer.targetYaw;
+    animationState.startPitch = pointer.targetPitch;
     viewport.setPointerCapture?.(event.pointerId);
   });
-
   viewport.addEventListener("pointermove", (event) => {
-    if (!animationState.dragging) {
-      return;
-    }
-    pointer.targetX =
-      animationState.startTargetX +
-      (event.clientX - animationState.dragStartX) * 0.005;
-    pointer.targetY = THREE.MathUtils.clamp(
-      animationState.startTargetY +
-        (event.clientY - animationState.dragStartY) * 0.0035,
-      -0.8,
-      0.8,
+    if (!animationState.dragging) return;
+    pointer.targetYaw =
+      animationState.startYaw + (event.clientX - animationState.dragStartX) * 0.0045;
+    pointer.targetPitch = THREE.MathUtils.clamp(
+      animationState.startPitch + (event.clientY - animationState.dragStartY) * 0.0035,
+      -0.52,
+      0.52,
     );
   });
-
   const endDrag = (event) => {
     animationState.dragging = false;
     viewport.releasePointerCapture?.(event.pointerId);
@@ -681,10 +845,34 @@ if (renderer) {
     { rootMargin: "120px 0px", threshold: 0.02 },
   );
   visibilityObserver.observe(viewport);
+  new ResizeObserver(resize).observe(viewport);
+  reducedMotion.addEventListener("change", () => {
+    activeModel?.update(animationState.elapsed);
+    render();
+  });
 
-  const resizeObserver = new ResizeObserver(resize);
-  resizeObserver.observe(viewport);
-  reducedMotion.addEventListener("change", render);
+  window.__agentVThreeLab = Object.freeze({
+    setScene,
+    resetView,
+    getDiagnostics() {
+      return {
+        activeScene: animationState.activeScene,
+        elapsed: animationState.elapsed,
+        visible: animationState.visible,
+        reducedMotion: reducedMotion.matches,
+        renderer: renderer.capabilities.isWebGL2 ? "webgl2" : "webgl1",
+        renderStats: {
+          calls: renderer.info.render.calls,
+          triangles: renderer.info.render.triangles,
+          lines: renderer.info.render.lines,
+          points: renderer.info.render.points,
+          geometries: renderer.info.memory.geometries,
+          textures: renderer.info.memory.textures,
+        },
+        model: activeModel?.diagnostics || null,
+      };
+    },
+  });
 
   setScene("solar");
   resize();
