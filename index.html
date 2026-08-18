@@ -43,6 +43,7 @@
     </script>
     <script src="script.js" defer></script>
     <script src="starfield.js" defer></script>
+    <script type="module" src="three-lab.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳到主要内容 / Skip to content</a>
@@ -69,6 +70,7 @@
         <div class="nav-links" id="nav-links">
           <a href="#mission">AgentV / Product</a>
           <a href="#directions">能力 / Capabilities</a>
+          <a href="#lab">3D 实验场 / 3D Lab</a>
           <a href="#projects">项目 / Projects</a>
           <a class="nav-github" href="https://github.com/KAIWU-AI">
             GitHub
@@ -237,12 +239,105 @@
         </div>
       </section>
 
+      <section class="three-lab section container" id="lab" aria-labelledby="lab-title">
+        <div class="section-heading lab-heading">
+          <div class="section-kicker">
+            <span>03</span>
+            <p>3D 教学实验场 / Interactive 3D lab</p>
+          </div>
+          <h2 id="lab-title">
+            从知识结构，到真实可感的 3D 场景。
+            <br><span>From concepts to spatial learning.</span>
+          </h2>
+        </div>
+
+        <div class="lab-shell">
+          <div class="lab-toolbar">
+            <div>
+              <p class="lab-overline">AGENTV · REAL-TIME SCENE PROTOTYPE</p>
+              <h3 id="lab-scene-title">太阳系课堂 / Solar System</h3>
+              <p id="lab-scene-description">
+                观察行星轨道、尺度层级与空间关系，让宇宙知识从平面图示走向立体课堂。
+              </p>
+            </div>
+            <div class="lab-selector" role="group" aria-label="选择 3D 教学场景">
+              <button
+                class="lab-tab is-active"
+                type="button"
+                data-scene="solar"
+                aria-pressed="true"
+              >
+                <span>01</span> 太阳系
+              </button>
+              <button
+                class="lab-tab"
+                type="button"
+                data-scene="gearbox"
+                aria-pressed="false"
+              >
+                <span>02</span> 行星齿轮箱
+              </button>
+              <button
+                class="lab-tab"
+                type="button"
+                data-scene="joint"
+                aria-pressed="false"
+              >
+                <span>03</span> 万向节
+              </button>
+            </div>
+          </div>
+
+          <div class="lab-viewport" data-three-lab>
+            <canvas
+              id="agentv-three-canvas"
+              aria-label="可交互的 AgentV 3D 教学场景"
+            ></canvas>
+            <div class="lab-hud" aria-hidden="true">
+              <span>WEBGL / REAL-TIME</span>
+              <span class="lab-hud-state"><i></i> SCENE READY</span>
+            </div>
+            <div class="lab-axis" aria-hidden="true">
+              <span>X</span><span>Y</span><span>Z</span>
+            </div>
+            <p class="lab-interaction">拖动旋转 · Drag to orbit</p>
+            <div class="lab-fallback" role="status">
+              当前浏览器无法加载 WebGL 3D 场景，请尝试使用现代浏览器。
+              <span>Your browser could not load the WebGL scene.</span>
+            </div>
+          </div>
+
+          <ol class="generation-pipeline" aria-label="AgentV 3D 场景生成流程">
+            <li>
+              <span>01</span>
+              <strong>主题理解</strong>
+              <small>Topic analysis</small>
+            </li>
+            <li>
+              <span>02</span>
+              <strong>结构建模</strong>
+              <small>Procedural modeling</small>
+            </li>
+            <li>
+              <span>03</span>
+              <strong>镜头编排</strong>
+              <small>Camera direction</small>
+            </li>
+            <li>
+              <span>04</span>
+              <strong>视频输出</strong>
+              <small>Video composition</small>
+            </li>
+          </ol>
+        </div>
+      </section>
+
       <section class="projects section container" id="projects" aria-labelledby="projects-title">
         <div class="project-panel">
           <div class="project-grid" aria-hidden="true"></div>
           <div class="project-content">
             <div class="section-kicker project-kicker">
-              <span>03</span>
+              <span>04</span>
               <p>开放进展 / Open progress</p>
             </div>
             <p class="coming-label"><span aria-hidden="true"></span> IN PREPARATION</p>

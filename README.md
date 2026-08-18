@@ -6,9 +6,9 @@ This is the official GitHub Pages website for [KAIWU-AI](https://github.com/KAIW
 
 ## 本地预览 / Local preview
 
-站点是零构建依赖的静态页面。克隆仓库后，可直接打开 `index.html`，或在仓库根目录启动任意静态文件服务器：
+站点是零构建依赖的静态页面，并在 `vendor/` 中本地托管固定版本的 Three.js，用于太阳系、行星齿轮箱和万向节 3D 教学场景。克隆仓库后，请在仓库根目录启动任意静态文件服务器：
 
-The site has no build dependencies. Open `index.html` directly, or run any static file server from the repository root:
+The site has no build dependencies and vendors a pinned Three.js runtime in `vendor/` for the solar system, planetary gearbox, and universal joint learning scenes. Run any static file server from the repository root:
 
 ```bash
 python -m http.server 8000
