@@ -7,6 +7,7 @@
 export const SUN_VISUAL_RADIUS = 0.82;
 export const SOLAR_SCALE_NOTE =
   "可视化比例 · Planet sizes and orbital spacing use non-linear visualized scales";
+export const SOLAR_CAMERA_NARROW = Object.freeze([0, 22, 28]);
 
 export const SOLAR_SYSTEM_BODIES = Object.freeze([
   Object.freeze({
@@ -15,6 +16,7 @@ export const SOLAR_SYSTEM_BODIES = Object.freeze([
     radiusKm: 2439.7,
     orbitAu: 0.387,
     orbitalDays: 87.97,
+    eccentricity: 0.2056,
     inclinationDeg: 7.0,
     axialTiltDeg: 0.034,
     phase: 0.34,
@@ -26,6 +28,7 @@ export const SOLAR_SYSTEM_BODIES = Object.freeze([
     radiusKm: 6051.8,
     orbitAu: 0.723,
     orbitalDays: 224.7,
+    eccentricity: 0.0068,
     inclinationDeg: 3.39,
     axialTiltDeg: 177.4,
     phase: 1.46,
@@ -37,6 +40,7 @@ export const SOLAR_SYSTEM_BODIES = Object.freeze([
     radiusKm: 6371.0,
     orbitAu: 1.0,
     orbitalDays: 365.25,
+    eccentricity: 0.0167,
     inclinationDeg: 0.0,
     axialTiltDeg: 23.44,
     phase: 2.23,
@@ -48,6 +52,7 @@ export const SOLAR_SYSTEM_BODIES = Object.freeze([
     radiusKm: 3389.5,
     orbitAu: 1.524,
     orbitalDays: 686.98,
+    eccentricity: 0.0934,
     inclinationDeg: 1.85,
     axialTiltDeg: 25.19,
     phase: 3.12,
@@ -59,6 +64,7 @@ export const SOLAR_SYSTEM_BODIES = Object.freeze([
     radiusKm: 69911,
     orbitAu: 5.203,
     orbitalDays: 4332.59,
+    eccentricity: 0.0489,
     inclinationDeg: 1.3,
     axialTiltDeg: 3.13,
     phase: 0.92,
@@ -70,6 +76,7 @@ export const SOLAR_SYSTEM_BODIES = Object.freeze([
     radiusKm: 58232,
     orbitAu: 9.537,
     orbitalDays: 10759.22,
+    eccentricity: 0.0565,
     inclinationDeg: 2.49,
     axialTiltDeg: 26.73,
     phase: 4.42,
@@ -81,6 +88,7 @@ export const SOLAR_SYSTEM_BODIES = Object.freeze([
     radiusKm: 25362,
     orbitAu: 19.191,
     orbitalDays: 30688.5,
+    eccentricity: 0.0472,
     inclinationDeg: 0.77,
     axialTiltDeg: 97.77,
     phase: 5.21,
@@ -92,6 +100,7 @@ export const SOLAR_SYSTEM_BODIES = Object.freeze([
     radiusKm: 24622,
     orbitAu: 30.07,
     orbitalDays: 60182,
+    eccentricity: 0.0086,
     inclinationDeg: 1.77,
     axialTiltDeg: 28.32,
     phase: 2.82,
@@ -105,4 +114,15 @@ export function visualPlanetRadius(radiusKm) {
 
 export function visualOrbitRadius(orbitAu) {
   return 1.35 + 1.08 * Math.log1p(Number(orbitAu) * 1.8);
+}
+
+export function positionOnVisualOrbit(body, angle) {
+  const radius = visualOrbitRadius(body.orbitAu);
+  const inclination = (body.inclinationDeg * Math.PI) / 180;
+  const localZ = Math.sin(angle) * radius * (1 - body.eccentricity * 0.42);
+  return Object.freeze({
+    x: Math.cos(angle) * radius,
+    y: -localZ * Math.sin(inclination),
+    z: localZ * Math.cos(inclination),
+  });
 }

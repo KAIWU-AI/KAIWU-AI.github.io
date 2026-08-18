@@ -3,9 +3,17 @@ import {
   SOLAR_SYSTEM_BODIES,
   SUN_VISUAL_RADIUS,
   SOLAR_SCALE_NOTE,
+  SOLAR_CAMERA_NARROW,
+  positionOnVisualOrbit,
   visualOrbitRadius,
   visualPlanetRadius,
 } from "./components/solar-system-data.mjs";
+import {
+  GEAR_MODULE_SCALE,
+  PLANETARY_GEAR_TEETH,
+  PLANETARY_CENTER_DISTANCE,
+  PLANETARY_PHASE_OFFSETS,
+} from "./components/mechanical-scene-data.mjs";
 
 const viewport = document.querySelector("[data-three-lab]");
 const canvas = document.querySelector("#agentv-three-canvas");
@@ -256,17 +264,12 @@ function createPlanetTexture(body, index) {
   return texture;
 }
 
-function createOrbit(radius, eccentricity, inclinationDeg) {
+function createOrbit(body) {
   const points = [];
   for (let index = 0; index < 192; index += 1) {
     const angle = (index / 192) * Math.PI * 2;
-    points.push(
-      new THREE.Vector3(
-        Math.cos(angle) * radius,
-        0,
-        Math.sin(angle) * radius * (1 - eccentricity * 0.42),
-      ),
-    );
+    const position = positionOnVisualOrbit(body, angle);
+    points.push(new THREE.Vector3(position.x, position.y, position.z));
   }
   const line = new THREE.LineLoop(
     new THREE.BufferGeometry().setFromPoints(points),
@@ -277,7 +280,6 @@ function createOrbit(radius, eccentricity, inclinationDeg) {
       depthWrite: false,
     }),
   );
-  line.rotation.z = THREE.MathUtils.degToRad(inclinationDeg);
   return line;
 }
 
@@ -297,7 +299,6 @@ function createAtmosphere(radius, color, opacity) {
 function buildSolarSystem() {
   const root = new THREE.Group();
   const orbiters = [];
-  const eccentricities = [0.2056, 0.0068, 0.0167, 0.0934, 0.0489, 0.0565, 0.0472, 0.0086];
 
   const sunTexture = createPlanetTexture(
     { name: "Sun", color: 0xffa83d },
@@ -335,7 +336,7 @@ function buildSolarSystem() {
   SOLAR_SYSTEM_BODIES.forEach((body, index) => {
     const orbitRadius = visualOrbitRadius(body.orbitAu);
     const planetRadius = visualPlanetRadius(body.radiusKm);
-    root.add(createOrbit(orbitRadius, eccentricities[index], body.inclinationDeg));
+    root.add(createOrbit(body));
 
     const planetGroup = new THREE.Group();
     const mesh = new THREE.Mesh(
@@ -403,7 +404,6 @@ function buildSolarSystem() {
       group: planetGroup,
       mesh,
       orbitRadius,
-      eccentricity: eccentricities[index],
       speed: 0.105 * Math.pow(365.25 / body.orbitalDays, 0.38),
     });
   });
@@ -445,7 +445,7 @@ function buildSolarSystem() {
   return {
     root,
     cameraWide: new THREE.Vector3(0, 6.3, 11.8),
-    cameraNarrow: new THREE.Vector3(0, 9.4, 15.2),
+    cameraNarrow: new THREE.Vector3(...SOLAR_CAMERA_NARROW),
     target: new THREE.Vector3(0, 0, 0),
     diagnostics: {
       bodyCount: SOLAR_SYSTEM_BODIES.length,
@@ -458,11 +458,8 @@ function buildSolarSystem() {
       asteroidBelt.rotation.y = time * 0.012;
       orbiters.forEach((orbiter, index) => {
         const angle = orbiter.body.phase + time * orbiter.speed;
-        orbiter.group.position.set(
-          Math.cos(angle) * orbiter.orbitRadius,
-          Math.sin(angle * 0.7 + index) * 0.018,
-          Math.sin(angle) * orbiter.orbitRadius * (1 - orbiter.eccentricity * 0.42),
-        );
+        const position = positionOnVisualOrbit(orbiter.body, angle);
+        orbiter.group.position.set(position.x, position.y, position.z);
         orbiter.mesh.rotation.y = time * (0.15 + index * 0.018);
         orbiter.group.userData.moonPivot &&
           (orbiter.group.userData.moonPivot.rotation.y = time * 0.72);
@@ -489,7 +486,12 @@ function buildPlanetaryGearbox() {
   }
   const root = new THREE.Group();
   const kit = window.PlanetaryGearKit.create(THREE, {
-    moduleScale: 0.076,
+    sunTeeth: PLANETARY_GEAR_TEETH.sun,
+    planetTeeth: PLANETARY_GEAR_TEETH.planet,
+    ringTeeth: PLANETARY_GEAR_TEETH.ring,
+    moduleScale: GEAR_MODULE_SCALE,
+    centerDistance: PLANETARY_CENTER_DISTANCE,
+    planetPhaseOffsets: PLANETARY_PHASE_OFFSETS,
     depth: 0.46,
     ringWall: 0.62,
     sunMaterial: metallicMaterial(0xff7b3a, 0.2, 0x4a1204),
@@ -787,19 +789,31 @@ if (renderer) {
     renderer.render(scene, camera);
   }
 
-  function animate(time) {
+  function stopAnimation() {
+    if (!animationState.frame) return;
+    window.cancelAnimationFrame(animationState.frame);
+    animationState.frame = 0;
+  }
+
+  function scheduleAnimation() {
+    if (
+      animationState.frame ||
+      !animationState.visible ||
+      document.hidden ||
+      reducedMotion.matches
+    ) return;
     animationState.frame = window.requestAnimationFrame(animate);
-    if (!animationState.visible || document.hidden) {
-      animationState.lastTime = time;
-      return;
-    }
+  }
+
+  function animate(time) {
+    animationState.frame = 0;
+    if (!animationState.visible || document.hidden || reducedMotion.matches) return;
     const delta = Math.min((time - animationState.lastTime) / 1000, 0.05);
     animationState.lastTime = time;
-    if (!reducedMotion.matches) {
-      animationState.elapsed += delta;
-      activeModel?.update(animationState.elapsed);
-    }
+    animationState.elapsed += delta;
+    activeModel?.update(animationState.elapsed);
     render();
+    scheduleAnimation();
   }
 
   sceneTabs.forEach((tab) => {
@@ -808,6 +822,27 @@ if (renderer) {
   resetButton?.addEventListener("click", resetView);
   resetButton?.addEventListener("pointerdown", (event) => event.stopPropagation());
   viewport.addEventListener("dblclick", resetView);
+  viewport.addEventListener("keydown", (event) => {
+    const step = event.shiftKey ? 0.24 : 0.12;
+    if (event.key === "Home") {
+      event.preventDefault();
+      resetView();
+      return;
+    }
+    if (event.key === "ArrowLeft") pointer.targetYaw -= step;
+    else if (event.key === "ArrowRight") pointer.targetYaw += step;
+    else if (event.key === "ArrowUp") {
+      pointer.targetPitch = THREE.MathUtils.clamp(pointer.targetPitch - step, -0.52, 0.52);
+    } else if (event.key === "ArrowDown") {
+      pointer.targetPitch = THREE.MathUtils.clamp(pointer.targetPitch + step, -0.52, 0.52);
+    } else return;
+    event.preventDefault();
+    if (reducedMotion.matches) {
+      pointer.yaw = pointer.targetYaw;
+      pointer.pitch = pointer.targetPitch;
+      render();
+    }
+  });
 
   viewport.addEventListener("pointerdown", (event) => {
     animationState.dragging = true;
@@ -826,6 +861,11 @@ if (renderer) {
       -0.52,
       0.52,
     );
+    if (reducedMotion.matches) {
+      pointer.yaw = pointer.targetYaw;
+      pointer.pitch = pointer.targetPitch;
+      render();
+    }
   });
   const endDrag = (event) => {
     animationState.dragging = false;
@@ -840,15 +880,27 @@ if (renderer) {
       if (entry.isIntersecting) {
         animationState.lastTime = performance.now();
         render();
+        scheduleAnimation();
+      } else {
+        stopAnimation();
       }
     },
     { rootMargin: "120px 0px", threshold: 0.02 },
   );
   visibilityObserver.observe(viewport);
   new ResizeObserver(resize).observe(viewport);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopAnimation();
+    else {
+      animationState.lastTime = performance.now();
+      scheduleAnimation();
+    }
+  });
   reducedMotion.addEventListener("change", () => {
+    if (reducedMotion.matches) stopAnimation();
     activeModel?.update(animationState.elapsed);
     render();
+    scheduleAnimation();
   });
 
   window.__agentVThreeLab = Object.freeze({
@@ -860,6 +912,13 @@ if (renderer) {
         elapsed: animationState.elapsed,
         visible: animationState.visible,
         reducedMotion: reducedMotion.matches,
+        animationFrameScheduled: Boolean(animationState.frame),
+        view: {
+          yaw: pointer.yaw,
+          pitch: pointer.pitch,
+          targetYaw: pointer.targetYaw,
+          targetPitch: pointer.targetPitch,
+        },
         renderer: renderer.capabilities.isWebGL2 ? "webgl2" : "webgl1",
         renderStats: {
           calls: renderer.info.render.calls,
@@ -876,5 +935,5 @@ if (renderer) {
 
   setScene("solar");
   resize();
-  animationState.frame = window.requestAnimationFrame(animate);
+  scheduleAnimation();
 }

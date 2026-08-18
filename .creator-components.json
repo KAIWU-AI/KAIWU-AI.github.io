@@ -25,7 +25,7 @@
     {
       "id": "three.universal-joint-kit",
       "catalog": "resources/video-visual-components/catalog.json",
-      "adopted_at": "2026-08-18T01:02:56.902003+00:00",
+      "adopted_at": "2026-08-18T01:48:50.960026+00:00",
       "license": {
         "status": "internal-original",
         "owner": "hydraxman / CreatorSkills",
@@ -39,7 +39,7 @@
         {
           "source": "resources/video-visual-components/components/three/universal-joint-kit.js",
           "target": "public/components/universal-joint-kit.js",
-          "sha256": "0aecd33857d886eb9b771135df3717f7dc76eebc774fe03dda635d1dc30f90fd"
+          "sha256": "3d8e76b0320b4624474ceac84a5066856218231a46d52982c587fdc5a40dd75e"
         }
       ]
     }
