@@ -293,7 +293,13 @@
             </div>
           </div>
 
-          <div class="lab-viewport" data-three-lab>
+          <div
+            class="lab-viewport"
+            data-three-lab
+            tabindex="0"
+            role="region"
+            aria-label="可交互的 AgentV 3D 教学场景；使用方向键旋转，Home 键复位视角"
+          >
             <canvas
               id="agentv-three-canvas"
               aria-label="可交互的 AgentV 3D 教学场景"
@@ -311,7 +317,7 @@
             <div class="lab-axis" aria-hidden="true">
               <span>X</span><span>Y</span><span>Z</span>
             </div>
-            <p class="lab-interaction">拖动旋转 · Drag to orbit</p>
+            <p class="lab-interaction">拖动或方向键旋转 · Drag or use arrow keys</p>
             <div class="lab-fallback" role="status">
               当前浏览器无法加载 WebGL 3D 场景，请尝试使用现代浏览器。
               <span>Your browser could not load the WebGL scene.</span>

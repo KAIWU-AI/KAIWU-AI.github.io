@@ -21,8 +21,8 @@
   }
 
   function continuousOutputAngle(alpha, beta) {
-    const wrapped = Math.atan2(Math.cos(beta) * Math.sin(alpha), Math.cos(alpha));
-    const turns = Math.floor((alpha + Math.PI) / TAU);
+    const wrapped = Math.atan2(Math.sin(alpha) * Math.cos(beta), Math.cos(alpha));
+    const turns = Math.round((alpha - wrapped) / TAU);
     return wrapped + turns * TAU;
   }
 

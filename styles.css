@@ -1229,6 +1229,12 @@ a {
     linear-gradient(180deg, #070a10, #030508);
   cursor: grab;
   touch-action: pan-y;
+  outline: none;
+}
+
+.lab-viewport:focus-visible {
+  outline: 2px solid rgba(126, 230, 255, 0.9);
+  outline-offset: -3px;
 }
 
 .lab-viewport:active {

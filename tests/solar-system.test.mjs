@@ -4,6 +4,8 @@ import {
   SOLAR_SYSTEM_BODIES,
   SUN_VISUAL_RADIUS,
   SOLAR_SCALE_NOTE,
+  SOLAR_CAMERA_NARROW,
+  positionOnVisualOrbit,
   visualOrbitRadius,
   visualPlanetRadius,
 } from '../components/solar-system-data.mjs';
@@ -42,4 +44,21 @@ test('all orbital phases and visual parameters are deterministic finite values',
       assert.ok(Number.isFinite(body[key]), `${body.name}.${key}`);
     }
   }
+});
+
+test('planet positions stay on the same inclined planes as their orbit lines', () => {
+  for (const body of SOLAR_SYSTEM_BODIES) {
+    const position = positionOnVisualOrbit(body, body.phase + 0.731);
+    const inclination = (body.inclinationDeg * Math.PI) / 180;
+    const planeError = position.y * Math.cos(inclination) + position.z * Math.sin(inclination);
+    assert.ok(Math.abs(planeError) < 1e-10, `${body.name} leaves its inclined orbit plane`);
+  }
+});
+
+test('portrait camera fits the complete outer orbit with planet padding', () => {
+  const distance = Math.hypot(...SOLAR_CAMERA_NARROW);
+  const portraitCanvasAspect = 390 / 544;
+  const halfHorizontalView = Math.tan((34 * Math.PI) / 360) * distance * portraitCanvasAspect;
+  const required = visualOrbitRadius(30.07) + visualPlanetRadius(69911);
+  assert.ok(halfHorizontalView > required * 1.15, `${halfHorizontalView} must exceed ${required} with 15% margin`);
 });

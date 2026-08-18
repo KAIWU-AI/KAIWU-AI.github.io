@@ -49,3 +49,11 @@ test('README code fences are balanced and Pages setup action is unique', async (
   assert.equal((readme.match(/```/g) || []).length % 2, 0);
   assert.equal((workflow.match(/actions\/configure-pages@v5/g) || []).length, 1);
 });
+
+test('3D viewport exposes keyboard rotation and reset semantics', async () => {
+  const html = await readFile(resolve(root, 'index.html'), 'utf8');
+  const viewport = html.match(/<div\b(?=[^>]*class="lab-viewport")[^>]*>/s)?.[0] || '';
+  assert.match(viewport, /tabindex="0"/);
+  assert.match(viewport, /aria-label=/);
+  assert.match(html, /方向键/);
+});

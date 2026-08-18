@@ -3,10 +3,16 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import {
+  GEAR_MODULE_SCALE,
+  PLANETARY_GEAR_TEETH,
+  PLANETARY_CENTER_DISTANCE,
+  PLANETARY_PHASE_OFFSETS,
+} from '../components/mechanical-scene-data.mjs';
 
 const cases = [
   ['../public/components/planetary-gear-kit.js', '5373a97455dbf08e9a9e50e8d70de874fd37bece1b14a9c269289793f6e44075', 'PlanetaryGearKit'],
-  ['../public/components/universal-joint-kit.js', '0aecd33857d886eb9b771135df3717f7dc76eebc774fe03dda635d1dc30f90fd', 'UniversalJointKit'],
+  ['../public/components/universal-joint-kit.js', '3d8e76b0320b4624474ceac84a5066856218231a46d52982c587fdc5a40dd75e', 'UniversalJointKit'],
 ];
 
 async function loadKit(relativePath, name) {
@@ -38,6 +44,16 @@ test('universal-joint component preserves single-Cardan angle and speed relation
   const beta = 25 * Math.PI / 180;
   assert.ok(Math.abs(kit.continuousOutputAngle(0, beta)) < 1e-12);
   assert.ok(Math.abs(kit.continuousOutputAngle(Math.PI / 2, beta) - Math.PI / 2) < 1e-12);
+  for (const input of [-3 * Math.PI, -Math.PI, Math.PI, 3 * Math.PI]) {
+    assert.ok(Math.abs(kit.continuousOutputAngle(input, beta) - input) < 1e-12, `unwrap at ${input}`);
+  }
   assert.ok(Math.abs(kit.speedRatio(0, beta) - Math.cos(beta)) < 1e-12);
   assert.ok(Math.abs(kit.speedRatio(Math.PI / 2, beta) - 1 / Math.cos(beta)) < 1e-12);
+});
+
+test('website gearbox uses pitch-circle center distance and evenly spaced planets', () => {
+  const { sun, planet, ring } = PLANETARY_GEAR_TEETH;
+  assert.equal(ring, sun + 2 * planet);
+  assert.equal(PLANETARY_CENTER_DISTANCE, GEAR_MODULE_SCALE * (sun + planet) / 2);
+  assert.deepEqual(PLANETARY_PHASE_OFFSETS, [0, 0, 0]);
 });

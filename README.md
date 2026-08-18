@@ -26,7 +26,8 @@ Then open <http://localhost:8000>.
 
 - **太阳系**：NASA 八大行星真实半径、轨道顺序和公转参数；画面明确采用非线性的可视化半径与对数轨道压缩，避免把视觉比例误称为 1:1 天文比例。
 - **行星齿轮箱**：复用 CreatorSkills 中已通过机械真值和成片验证的 `three.planetary-gear-kit`，保持 18T 太阳轮 / 3×12T 行星轮 / 42T 固定齿圈关系。
-- **万向节**：复用已验证的 `three.universal-joint-kit`，包含双叉、十字轴、四轴承杯与单十字轴万向节的非匀速输出关系。
+- **万向节**：复用已验证的 `three.universal-joint-kit`，包含双叉、十字轴、四轴承杯与单十字轴万向节的非匀速输出关系，并覆盖连续输出角在 ±π 边界的展开。
+- **交互与可访问性**：支持拖拽、方向键旋转和 `Home` 复位；减弱动态模式会停止持续动画帧。
 
 机械组件以项目本地副本运行，不依赖外部组件库；来源、许可证、目标路径和 SHA-256 记录在 [`.creator-components.json`](./.creator-components.json)。太阳系数据与视觉映射位于 [`components/solar-system-data.mjs`](./components/solar-system-data.mjs)。
 
