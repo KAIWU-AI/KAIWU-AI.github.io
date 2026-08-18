@@ -2,8 +2,8 @@ import * as THREE from "./vendor/three.module.min.js";
 import {
   SOLAR_SYSTEM_BODIES,
   SUN_VISUAL_RADIUS,
-  SOLAR_SCALE_NOTE,
   SOLAR_CAMERA_NARROW,
+  axialTiltRadians,
   positionOnVisualOrbit,
   visualOrbitRadius,
   visualPlanetRadius,
@@ -15,76 +15,12 @@ import {
   PLANETARY_PHASE_OFFSETS,
 } from "./components/mechanical-scene-data.mjs";
 
-const viewport = document.querySelector("[data-three-lab]");
-const canvas = document.querySelector("#agentv-three-canvas");
-const sceneTitle = document.querySelector("#lab-scene-title");
-const sceneDescription = document.querySelector("#lab-scene-description");
-const sceneMeta = document.querySelector("#lab-scene-meta");
-const sceneBadge = document.querySelector("#lab-scene-badge");
-const resetButton = document.querySelector("#lab-reset-view");
-const sceneTabs = [...document.querySelectorAll("[data-scene]")];
-
-if (!viewport || !canvas || !sceneTitle || !sceneDescription) {
-  throw new Error("AgentV 3D lab markup is incomplete.");
+const viewports = [...document.querySelectorAll("[data-three-view]")];
+if (viewports.length !== 3) {
+  throw new Error("AgentV 3D lab requires solar, gearbox, and joint viewports.");
 }
-
-const sceneCopy = {
-  solar: {
-    title: "太阳系课堂 / Solar System",
-    description:
-      "以真实天文数据为基础，用非线性可视化比例呈现八大行星的尺度层级、轨道次序与空间关系。",
-    meta: SOLAR_SCALE_NOTE,
-    badge: "8 PLANETS · LOG ORBITS · VISUALIZED RADII",
-  },
-  gearbox: {
-    title: "行星齿轮箱 / Planetary Gearbox",
-    description:
-      "复用已通过视频成片与机械真值验证的18齿太阳轮、三组12齿行星轮和42齿固定齿圈。",
-    meta: "教学几何 · 18T SUN / 3×12T PLANETS / 42T FIXED RING",
-    badge: "VALIDATED COMPONENT · i = 3.33:1",
-  },
-  joint: {
-    title: "万向节机构 / Universal Joint",
-    description:
-      "复用已验证的双叉、十字轴与四轴承杯模型，展示25°夹角下单十字轴万向节的非匀速输出。",
-    meta: "教学几何 · SINGLE CARDAN · β = 25°",
-    badge: "VALIDATED KINEMATICS · TAN α₂ / TAN α₁ = COS β",
-  },
-};
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-const modelRoot = new THREE.Group();
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 160);
-const cameraTarget = new THREE.Vector3();
-const pointer = { yaw: 0, pitch: 0, targetYaw: 0, targetPitch: 0 };
-const animationState = {
-  activeScene: "solar",
-  elapsed: 0,
-  lastTime: 0,
-  frame: 0,
-  visible: false,
-  dragging: false,
-  dragStartX: 0,
-  dragStartY: 0,
-  startYaw: 0,
-  startPitch: 0,
-};
-
-let renderer;
-let activeModel;
-
-try {
-  renderer = new THREE.WebGLRenderer({
-    canvas,
-    alpha: true,
-    antialias: true,
-    powerPreference: "high-performance",
-  });
-} catch (error) {
-  viewport.classList.add("has-error");
-  console.error("AgentV 3D lab could not initialize WebGL.", error);
-}
 
 function fract(value) {
   return value - Math.floor(value);
@@ -121,14 +57,6 @@ function disposeObject(root) {
       materials.forEach(disposeMaterial);
     }
   });
-}
-
-function clearModel() {
-  if (!activeModel) return;
-  activeModel.dispose?.();
-  modelRoot.remove(activeModel.root);
-  disposeObject(activeModel.root);
-  activeModel = null;
 }
 
 function createStars(count, radiusMin, radiusMax, size, opacity) {
@@ -181,7 +109,7 @@ function createGlowTexture() {
   return texture;
 }
 
-function createPlanetTexture(body, index) {
+function createPlanetTexture(body, index, renderer) {
   const textureCanvas = document.createElement("canvas");
   textureCanvas.width = 384;
   textureCanvas.height = 192;
@@ -296,13 +224,14 @@ function createAtmosphere(radius, color, opacity) {
   );
 }
 
-function buildSolarSystem() {
+function buildSolarSystem(renderer) {
   const root = new THREE.Group();
   const orbiters = [];
 
   const sunTexture = createPlanetTexture(
     { name: "Sun", color: 0xffa83d },
     99,
+    renderer,
   );
   const sun = new THREE.Mesh(
     new THREE.SphereGeometry(SUN_VISUAL_RADIUS, 72, 48),
@@ -342,7 +271,7 @@ function buildSolarSystem() {
     const mesh = new THREE.Mesh(
       new THREE.SphereGeometry(planetRadius, 48, 32),
       new THREE.MeshStandardMaterial({
-        map: createPlanetTexture(body, index),
+        map: createPlanetTexture(body, index, renderer),
         color: 0xffffff,
         roughness: body.name === "Earth" ? 0.58 : 0.74,
         metalness: 0,
@@ -394,8 +323,10 @@ function buildSolarSystem() {
         }),
       );
       ring.rotation.x = Math.PI / 2;
-      ring.rotation.z = THREE.MathUtils.degToRad(body.axialTiltDeg * 0.35);
-      planetGroup.add(ring);
+      const ringAssembly = new THREE.Group();
+      ringAssembly.rotation.z = axialTiltRadians(body);
+      ringAssembly.add(ring);
+      planetGroup.add(ringAssembly);
     }
 
     root.add(planetGroup);
@@ -446,6 +377,7 @@ function buildSolarSystem() {
     root,
     cameraWide: new THREE.Vector3(0, 6.3, 11.8),
     cameraNarrow: new THREE.Vector3(...SOLAR_CAMERA_NARROW),
+    cameraCard: new THREE.Vector3(0, 13, 18),
     target: new THREE.Vector3(0, 0, 0),
     diagnostics: {
       bodyCount: SOLAR_SYSTEM_BODIES.length,
@@ -591,6 +523,7 @@ function buildPlanetaryGearbox() {
     root,
     cameraWide: new THREE.Vector3(1.8, 5.5, 13.8),
     cameraNarrow: new THREE.Vector3(1.2, 7.8, 16.2),
+    cameraCard: new THREE.Vector3(1.2, 6.4, 13.8),
     target: new THREE.Vector3(0, 0, -0.05),
     diagnostics: {
       sunTeeth: kit.config.sunTeeth,
@@ -677,6 +610,7 @@ function buildUniversalJoint() {
     root,
     cameraWide: new THREE.Vector3(0, 9.4, 8.6),
     cameraNarrow: new THREE.Vector3(0, 20, 20),
+    cameraCard: new THREE.Vector3(0, 10.8, 10.2),
     target: new THREE.Vector3(0, 0, 0),
     diagnostics: {
       betaDeg: 25,
@@ -698,25 +632,31 @@ function buildUniversalJoint() {
   };
 }
 
-if (renderer) {
-  const compactDevice = window.matchMedia("(max-width: 640px)").matches;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, compactDevice ? 1.25 : 1.5));
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.18;
-  renderer.shadowMap.enabled = true;
+const builders = {
+  solar: buildSolarSystem,
+  gearbox: buildPlanetaryGearbox,
+  joint: buildUniversalJoint,
+};
 
+const runtimeState = {
+  elapsed: 0,
+  lastTime: performance.now(),
+  frame: 0,
+};
+const views = [];
+
+function addSceneEnvironment(scene, modelRoot) {
   scene.fog = new THREE.FogExp2(0x02040a, 0.016);
   scene.add(modelRoot);
-  scene.add(createStars(920, 20, 68, 0.055, 0.82));
-  scene.add(createStars(160, 14, 42, 0.105, 0.5));
+  scene.add(createStars(460, 20, 68, 0.055, 0.78));
+  scene.add(createStars(80, 14, 42, 0.105, 0.46));
 
   const ambient = new THREE.HemisphereLight(0xb7d9ef, 0x120c18, 0.95);
   scene.add(ambient);
   const keyLight = new THREE.DirectionalLight(0xf5fbff, 3.4);
   keyLight.position.set(6, 9, 7);
   keyLight.castShadow = true;
-  keyLight.shadow.mapSize.set(1024, 1024);
+  keyLight.shadow.mapSize.set(768, 768);
   scene.add(keyLight);
   const purpleRim = new THREE.PointLight(0x9a35b1, 19, 28, 2);
   purpleRim.position.set(-6, 3, -4);
@@ -724,101 +664,136 @@ if (renderer) {
   const cyanRim = new THREE.PointLight(0x78ddff, 15, 24, 2);
   cyanRim.position.set(6, -1, 5);
   scene.add(cyanRim);
+}
 
-  const builders = {
-    solar: buildSolarSystem,
-    gearbox: buildPlanetaryGearbox,
-    joint: buildUniversalJoint,
+function scheduleAnimation() {
+  if (
+    runtimeState.frame ||
+    document.hidden ||
+    reducedMotion.matches ||
+    !views.some((view) => view.visible && !view.error)
+  ) return;
+  runtimeState.frame = window.requestAnimationFrame(animate);
+}
+
+function stopAnimation() {
+  if (!runtimeState.frame) return;
+  window.cancelAnimationFrame(runtimeState.frame);
+  runtimeState.frame = 0;
+}
+
+function animate(time) {
+  runtimeState.frame = 0;
+  if (document.hidden || reducedMotion.matches) return;
+  const delta = Math.min((time - runtimeState.lastTime) / 1000, 0.05);
+  runtimeState.lastTime = time;
+  runtimeState.elapsed += delta;
+  for (const view of views) {
+    if (!view.visible || view.error) continue;
+    view.model.update(runtimeState.elapsed);
+    view.render();
+  }
+  scheduleAnimation();
+}
+
+function createView(viewport) {
+  const name = viewport.dataset.threeView;
+  const builder = builders[name];
+  const canvas = viewport.querySelector("[data-three-canvas]");
+  const resetButton = viewport.querySelector("[data-reset-view]");
+  if (!builder || !canvas) {
+    throw new Error(`AgentV ${name || "unknown"} viewport markup is incomplete.`);
+  }
+
+  const state = {
+    visible: false,
+    error: false,
+    dragging: false,
+    dragStartX: 0,
+    dragStartY: 0,
+    startYaw: 0,
+    startPitch: 0,
+  };
+  const pointer = { yaw: 0, pitch: 0, targetYaw: 0, targetPitch: 0 };
+  const modelRoot = new THREE.Group();
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 160);
+  const cameraTarget = new THREE.Vector3();
+  let renderer;
+  let model;
+
+  const showFallback = (message, error) => {
+    state.error = true;
+    viewport.classList.add("has-error");
+    canvas.setAttribute("aria-hidden", "true");
+    console.error(message, error);
   };
 
-  function resetView() {
-    pointer.targetYaw = 0;
-    pointer.targetPitch = 0;
-  }
-
-  function applyCamera() {
-    if (!activeModel) return;
-    const compact = viewport.clientWidth < 640;
-    camera.position.copy(compact ? activeModel.cameraNarrow : activeModel.cameraWide);
-    cameraTarget.copy(activeModel.target);
-    camera.lookAt(cameraTarget);
-  }
-
-  function setScene(name) {
-    const builder = builders[name];
-    const copy = sceneCopy[name];
-    if (!builder || !copy) return;
-
-    clearModel();
-    animationState.activeScene = name;
-    animationState.elapsed = 0;
-    resetView();
-    activeModel = builder();
-    modelRoot.add(activeModel.root);
-    applyCamera();
-    sceneTitle.textContent = copy.title;
-    sceneDescription.textContent = copy.description;
-    if (sceneMeta) sceneMeta.textContent = copy.meta;
-    if (sceneBadge) sceneBadge.textContent = copy.badge;
-
-    sceneTabs.forEach((tab) => {
-      const selected = tab.dataset.scene === name;
-      tab.classList.toggle("is-active", selected);
-      tab.setAttribute("aria-pressed", String(selected));
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+      powerPreference: "high-performance",
     });
-    activeModel.update(0);
-    render();
+    const compactDevice = window.matchMedia("(max-width: 640px)").matches;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, compactDevice ? 1 : 1.25));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.18;
+    renderer.shadowMap.enabled = true;
+    addSceneEnvironment(scene, modelRoot);
+    model = builder(renderer);
+    modelRoot.add(model.root);
+    camera.position.copy(model.cameraCard || model.cameraWide);
+    cameraTarget.copy(model.target);
+    camera.lookAt(cameraTarget);
+    model.update(0);
+  } catch (error) {
+    showFallback(`AgentV could not initialize the ${name} view.`, error);
+    renderer?.dispose?.();
+    return { name, viewport, canvas, state, pointer, renderer, model, visible: false, error: true, render() {} };
   }
 
-  function resize() {
-    const width = viewport.clientWidth;
-    const height = viewport.clientHeight;
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    applyCamera();
-    render();
-  }
-
-  function render() {
-    if (!activeModel) return;
-    pointer.yaw += (pointer.targetYaw - pointer.yaw) * 0.055;
-    pointer.pitch += (pointer.targetPitch - pointer.pitch) * 0.055;
+  const render = () => {
+    if (state.error) return;
+    pointer.yaw += (pointer.targetYaw - pointer.yaw) * 0.075;
+    pointer.pitch += (pointer.targetPitch - pointer.pitch) * 0.075;
     modelRoot.rotation.y = pointer.yaw;
     modelRoot.rotation.x = pointer.pitch;
     renderer.render(scene, camera);
-  }
+  };
 
-  function stopAnimation() {
-    if (!animationState.frame) return;
-    window.cancelAnimationFrame(animationState.frame);
-    animationState.frame = 0;
-  }
-
-  function scheduleAnimation() {
-    if (
-      animationState.frame ||
-      !animationState.visible ||
-      document.hidden ||
-      reducedMotion.matches
-    ) return;
-    animationState.frame = window.requestAnimationFrame(animate);
-  }
-
-  function animate(time) {
-    animationState.frame = 0;
-    if (!animationState.visible || document.hidden || reducedMotion.matches) return;
-    const delta = Math.min((time - animationState.lastTime) / 1000, 0.05);
-    animationState.lastTime = time;
-    animationState.elapsed += delta;
-    activeModel?.update(animationState.elapsed);
+  const resize = () => {
+    if (state.error) return;
+    const width = Math.max(viewport.clientWidth, 1);
+    const height = Math.max(viewport.clientHeight, 1);
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    camera.position.copy(model.cameraCard || model.cameraWide);
+    camera.lookAt(cameraTarget);
     render();
-    scheduleAnimation();
-  }
+  };
 
-  sceneTabs.forEach((tab) => {
-    tab.addEventListener("click", () => setScene(tab.dataset.scene));
-  });
+  const safeResize = () => {
+    try {
+      resize();
+    } catch (error) {
+      showFallback(`AgentV could not resize the ${name} view.`, error);
+    }
+  };
+
+  const resetView = () => {
+    pointer.targetYaw = 0;
+    pointer.targetPitch = 0;
+    if (reducedMotion.matches) {
+      pointer.yaw = 0;
+      pointer.pitch = 0;
+      render();
+    }
+  };
+
   resetButton?.addEventListener("click", resetView);
   resetButton?.addEventListener("pointerdown", (event) => event.stopPropagation());
   viewport.addEventListener("dblclick", resetView);
@@ -845,19 +820,18 @@ if (renderer) {
   });
 
   viewport.addEventListener("pointerdown", (event) => {
-    animationState.dragging = true;
-    animationState.dragStartX = event.clientX;
-    animationState.dragStartY = event.clientY;
-    animationState.startYaw = pointer.targetYaw;
-    animationState.startPitch = pointer.targetPitch;
+    state.dragging = true;
+    state.dragStartX = event.clientX;
+    state.dragStartY = event.clientY;
+    state.startYaw = pointer.targetYaw;
+    state.startPitch = pointer.targetPitch;
     viewport.setPointerCapture?.(event.pointerId);
   });
   viewport.addEventListener("pointermove", (event) => {
-    if (!animationState.dragging) return;
-    pointer.targetYaw =
-      animationState.startYaw + (event.clientX - animationState.dragStartX) * 0.0045;
+    if (!state.dragging) return;
+    pointer.targetYaw = state.startYaw + (event.clientX - state.dragStartX) * 0.0045;
     pointer.targetPitch = THREE.MathUtils.clamp(
-      animationState.startPitch + (event.clientY - animationState.dragStartY) * 0.0035,
+      state.startPitch + (event.clientY - state.dragStartY) * 0.0035,
       -0.52,
       0.52,
     );
@@ -868,72 +842,126 @@ if (renderer) {
     }
   });
   const endDrag = (event) => {
-    animationState.dragging = false;
+    state.dragging = false;
     viewport.releasePointerCapture?.(event.pointerId);
   };
   viewport.addEventListener("pointerup", endDrag);
   viewport.addEventListener("pointercancel", endDrag);
 
-  const visibilityObserver = new IntersectionObserver(
-    ([entry]) => {
-      animationState.visible = entry.isIntersecting;
-      if (entry.isIntersecting) {
-        animationState.lastTime = performance.now();
-        render();
-        scheduleAnimation();
-      } else {
-        stopAnimation();
-      }
-    },
-    { rootMargin: "120px 0px", threshold: 0.02 },
-  );
-  visibilityObserver.observe(viewport);
-  new ResizeObserver(resize).observe(viewport);
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) stopAnimation();
-    else {
-      animationState.lastTime = performance.now();
-      scheduleAnimation();
-    }
-  });
-  reducedMotion.addEventListener("change", () => {
-    if (reducedMotion.matches) stopAnimation();
-    activeModel?.update(animationState.elapsed);
-    render();
-    scheduleAnimation();
+  canvas.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    showFallback(`AgentV ${name} view lost its WebGL context.`, event);
   });
 
-  window.__agentVThreeLab = Object.freeze({
-    setScene,
+  const view = {
+    name,
+    viewport,
+    canvas,
+    state,
+    pointer,
+    renderer,
+    model,
+    get visible() { return state.visible; },
+    get error() { return state.error; },
+    render,
+    resize: safeResize,
     resetView,
-    getDiagnostics() {
-      return {
-        activeScene: animationState.activeScene,
-        elapsed: animationState.elapsed,
-        visible: animationState.visible,
-        reducedMotion: reducedMotion.matches,
-        animationFrameScheduled: Boolean(animationState.frame),
-        view: {
-          yaw: pointer.yaw,
-          pitch: pointer.pitch,
-          targetYaw: pointer.targetYaw,
-          targetPitch: pointer.targetPitch,
-        },
-        renderer: renderer.capabilities.isWebGL2 ? "webgl2" : "webgl1",
-        renderStats: {
-          calls: renderer.info.render.calls,
-          triangles: renderer.info.render.triangles,
-          lines: renderer.info.render.lines,
-          points: renderer.info.render.points,
-          geometries: renderer.info.memory.geometries,
-          textures: renderer.info.memory.textures,
-        },
-        model: activeModel?.diagnostics || null,
-      };
-    },
-  });
+  };
 
-  setScene("solar");
-  resize();
-  scheduleAnimation();
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        state.visible = entry.isIntersecting;
+        if (state.visible) {
+          runtimeState.lastTime = performance.now();
+          render();
+          scheduleAnimation();
+        } else if (!views.some((item) => item.visible && !item.error)) {
+          stopAnimation();
+        }
+      },
+      { rootMargin: "160px 0px", threshold: 0.02 },
+    );
+    observer.observe(viewport);
+  } else {
+    state.visible = true;
+  }
+
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(safeResize).observe(viewport);
+  } else {
+    window.addEventListener("resize", safeResize, { passive: true });
+  }
+
+  safeResize();
+  render();
+  return view;
 }
+
+for (const viewport of viewports) {
+  views.push(createView(viewport));
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopAnimation();
+  } else {
+    runtimeState.lastTime = performance.now();
+    for (const view of views) view.render();
+    scheduleAnimation();
+  }
+});
+
+reducedMotion.addEventListener("change", () => {
+  if (reducedMotion.matches) stopAnimation();
+  for (const view of views) {
+    if (view.error) continue;
+    view.model.update(runtimeState.elapsed);
+    view.render();
+  }
+  scheduleAnimation();
+});
+
+window.__agentVThreeLab = Object.freeze({
+  resetView(name) {
+    const view = views.find((item) => item.name === name);
+    view?.resetView();
+  },
+  getDiagnostics() {
+    return {
+      layout: "responsive-grid",
+      viewCount: views.length,
+      elapsed: runtimeState.elapsed,
+      reducedMotion: reducedMotion.matches,
+      animationFrameScheduled: Boolean(runtimeState.frame),
+      scenes: Object.fromEntries(
+        views.map((view) => [
+          view.name,
+          {
+            visible: view.visible,
+            error: view.error,
+            view: {
+              yaw: view.pointer.yaw,
+              pitch: view.pointer.pitch,
+              targetYaw: view.pointer.targetYaw,
+              targetPitch: view.pointer.targetPitch,
+            },
+            renderer: view.renderer?.capabilities.isWebGL2 ? "webgl2" : "webgl1",
+            renderStats: view.renderer ? {
+              calls: view.renderer.info.render.calls,
+              triangles: view.renderer.info.render.triangles,
+              lines: view.renderer.info.render.lines,
+              points: view.renderer.info.render.points,
+              geometries: view.renderer.info.memory.geometries,
+              textures: view.renderer.info.memory.textures,
+            } : null,
+            model: view.model?.diagnostics || null,
+          },
+        ]),
+      ),
+    };
+  },
+});
+
+runtimeState.lastTime = performance.now();
+scheduleAnimation();

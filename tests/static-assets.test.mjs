@@ -43,6 +43,11 @@ test('all local HTML, CSS and module references resolve inside the static site',
   assert.deepEqual(missing, []);
 });
 
+test('HTML script elements are balanced so module markup cannot swallow the page', async () => {
+  const html = await readFile(resolve(root, 'index.html'), 'utf8');
+  assert.equal((html.match(/<script\b/g) || []).length, (html.match(/<\/script>/g) || []).length);
+});
+
 test('README code fences are balanced and Pages setup action is unique', async () => {
   const readme = await readFile(resolve(root, 'README.md'), 'utf8');
   const workflow = await readFile(resolve(root, '.github/workflows/pages.yml'), 'utf8');
@@ -52,8 +57,27 @@ test('README code fences are balanced and Pages setup action is unique', async (
 
 test('3D viewport exposes keyboard rotation and reset semantics', async () => {
   const html = await readFile(resolve(root, 'index.html'), 'utf8');
-  const viewport = html.match(/<div\b(?=[^>]*class="lab-viewport")[^>]*>/s)?.[0] || '';
-  assert.match(viewport, /tabindex="0"/);
-  assert.match(viewport, /aria-label=/);
+  const viewports = [...html.matchAll(/data-three-view="(solar|gearbox|joint)"/g)];
+  assert.deepEqual(viewports.map((match) => match[1]), ['solar', 'gearbox', 'joint']);
+  assert.equal((html.match(/data-three-canvas/g) || []).length, 3);
+  assert.doesNotMatch(html, /class="lab-selector"/);
+  assert.ok(html.indexOf('id="lab"') < html.indexOf('id="mission"'));
+  assert.match(html, /tabindex="0"/);
+  assert.match(html, /aria-label=/);
   assert.match(html, /方向键/);
+});
+
+test('starfield paints immediately with a denser motion field', async () => {
+  const script = await readFile(resolve(root, 'starfield.js'), 'utf8');
+  assert.match(script, /return Math\.max\(96,/);
+  assert.match(script, /drawStaticField\(\);\s*if \(reducedMotion\.matches\)/s);
+});
+
+test('3D runtime feature-detects observers and handles WebGL context loss', async () => {
+  const script = await readFile(resolve(root, 'three-lab.js'), 'utf8');
+  assert.match(script, /if \("IntersectionObserver" in window\)/);
+  assert.match(script, /if \("ResizeObserver" in window\)/);
+  assert.match(script, /webglcontextlost/);
+  const html = await readFile(resolve(root, 'index.html'), 'utf8');
+  assert.match(html, /import\("\.\/three-lab\.js"\)\.catch/);
 });

@@ -5,6 +5,7 @@ import {
   SUN_VISUAL_RADIUS,
   SOLAR_SCALE_NOTE,
   SOLAR_CAMERA_NARROW,
+  axialTiltRadians,
   positionOnVisualOrbit,
   visualOrbitRadius,
   visualPlanetRadius,
@@ -36,6 +37,19 @@ test('visual radii preserve broad real hierarchy while keeping small planets vis
   assert.ok(radius.Mars > radius.Mercury);
   assert.ok(radius.Mercury >= 0.055);
   assert.ok(SUN_VISUAL_RADIUS >= radius.Jupiter * 2);
+});
+
+test('ringed planets retain their full physical axial tilt', () => {
+  const saturn = SOLAR_SYSTEM_BODIES.find((body) => body.name === 'Saturn');
+  const uranus = SOLAR_SYSTEM_BODIES.find((body) => body.name === 'Uranus');
+  assert.ok(Math.abs(axialTiltRadians(saturn) - 26.73 * Math.PI / 180) < 1e-12);
+  assert.ok(Math.abs(axialTiltRadians(uranus) - 97.77 * Math.PI / 180) < 1e-12);
+});
+
+test('scale disclosure covers visualized phase and time rather than implying an ephemeris', () => {
+  assert.match(SOLAR_SCALE_NOTE, /phase/i);
+  assert.match(SOLAR_SCALE_NOTE, /time/i);
+  assert.match(SOLAR_SCALE_NOTE, /not an ephemeris/i);
 });
 
 test('all orbital phases and visual parameters are deterministic finite values', () => {

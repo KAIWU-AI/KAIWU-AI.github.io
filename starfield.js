@@ -27,6 +27,7 @@
   const depthNear = 0.16;
   const depthFar = 1.25;
   const focalBase = { x: 0.72, y: 0.24 };
+  const initializedAt = performance.now();
 
   let width = 0;
   let height = 0;
@@ -41,13 +42,14 @@
   let animationFrame = 0;
   let previousTime = 0;
   let resizeTimer = 0;
+  let firstPaintAt = 0;
 
   const random = (minimum, maximum) =>
     Math.random() * (maximum - minimum) + minimum;
 
   const particleCount = () => {
-    const areaScale = Math.min((width * height) / 13000, 96);
-    return Math.max(48, Math.round(areaScale));
+    const areaScale = Math.min((width * height) / 7600, 180);
+    return Math.max(96, Math.round(areaScale));
   };
 
   const createParticle = (atFarDepth = true) => ({
@@ -55,7 +57,7 @@
     y: random(-0.72, 0.72),
     z: atFarDepth ? random(0.9, depthFar) : random(depthNear, depthFar),
     size: random(0.45, 1.25),
-    speed: random(0.72, 1.18),
+    speed: random(0.95, 1.65),
     color: palette[Math.floor(Math.random() * palette.length)],
   });
 
@@ -147,13 +149,13 @@
       const point = project(particle);
       paintParticle(particle, point, point);
     }
+    if (!firstPaintAt) firstPaintAt = performance.now();
   };
 
   const animate = (time) => {
     animationFrame = window.requestAnimationFrame(animate);
     if (!previousTime) {
       previousTime = time;
-      return;
     }
 
     const elapsed = Math.min(time - previousTime, 40);
@@ -166,7 +168,7 @@
       const particle = particles[index];
       const previous = project(particle);
 
-      particle.z -= elapsed * 0.000072 * particle.speed;
+      particle.z -= elapsed * 0.00013 * particle.speed;
       const turn = elapsed * 0.0000028;
       const oldX = particle.x;
       particle.x = oldX * Math.cos(turn) - particle.y * Math.sin(turn);
@@ -198,8 +200,9 @@
   const start = () => {
     stop();
     previousTime = 0;
+    drawStaticField();
     if (reducedMotion.matches) {
-      drawStaticField();
+      return;
     } else {
       animationFrame = window.requestAnimationFrame(animate);
     }
@@ -233,4 +236,14 @@
   reducedMotion.addEventListener("change", start);
   resize();
   start();
+  window.__agentVStarfield = Object.freeze({
+    getDiagnostics() {
+      return {
+        particleCount: particles.length,
+        firstPaintMs: firstPaintAt - initializedAt,
+        animationFrameScheduled: Boolean(animationFrame),
+        reducedMotion: reducedMotion.matches,
+      };
+    },
+  });
 })();
