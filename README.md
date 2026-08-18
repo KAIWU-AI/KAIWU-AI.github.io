@@ -1,8 +1,8 @@
 # KAIWU-AI Organization Website
 
-这是 [KAIWU-AI](https://github.com/KAIWU-AI) 的官方 GitHub Pages 组织主页，聚焦 AI 驱动的内容与视频创作、智能工作流及相关开源探索。
+这是 [KAIWU-AI](https://github.com/KAIWU-AI) 的官方 GitHub Pages 组织主页，主要介绍面向教育领域的 AI 视频生成产品 AgentV。AgentV 可生成 3D 场景、数字人场景及多样化教育视频。
 
-This is the official GitHub Pages website for [KAIWU-AI](https://github.com/KAIWU-AI), an open-source organization exploring AI-powered content, video creation, and intelligent workflows.
+This is the official GitHub Pages website for [KAIWU-AI](https://github.com/KAIWU-AI), introducing AgentV, an AI video generation product for education that creates 3D scenes, digital human presenters, and diverse learning scenarios.
 
 ## 本地预览 / Local preview
 
