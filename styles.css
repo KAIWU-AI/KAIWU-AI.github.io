@@ -1365,23 +1365,178 @@ a {
   position: absolute;
   z-index: 4;
   inset: 0;
-  display: none;
+  display: grid;
   place-content: center;
-  padding: 2rem;
-  background: #090d13;
+  justify-items: center;
+  gap: 0.45rem;
+  padding: 1.5rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(92, 189, 224, 0.08), transparent 42%),
+    #090d13;
   color: var(--text-soft);
   text-align: center;
 }
 
-.lab-fallback span {
-  display: block;
-  margin-top: 0.4rem;
-  color: var(--text-dim);
-  font-size: 0.78rem;
+.lab-fallback strong {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
-.lab-viewport.has-error .lab-fallback {
-  display: grid;
+.lab-fallback span {
+  display: block;
+  max-width: 18rem;
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.lab-fallback-visual {
+  position: relative;
+  width: 12rem;
+  height: 9rem;
+  margin-bottom: 0.35rem;
+  filter: drop-shadow(0 0 1.25rem rgba(123, 215, 244, 0.12));
+}
+
+.lab-viewport.is-webgl-ready .lab-fallback {
+  display: none;
+}
+
+.lab-viewport:not(.is-webgl-ready) canvas,
+.lab-viewport:not(.is-webgl-ready) .lab-hud,
+.lab-viewport:not(.is-webgl-ready) .lab-scene-badge,
+.lab-viewport:not(.is-webgl-ready) .lab-reset-view,
+.lab-viewport:not(.is-webgl-ready) .lab-axis,
+.lab-viewport:not(.is-webgl-ready) .lab-interaction {
+  visibility: hidden;
+  opacity: 0;
+}
+
+[data-three-view="solar"] .lab-fallback-visual::before {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: 1.05rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #ffb458;
+  box-shadow: 0 0 0.8rem rgba(255, 174, 75, 0.85), 0 0 2rem rgba(255, 119, 42, 0.38);
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+[data-three-view="solar"] .lab-fallback-visual i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(142, 231, 255, 0.18);
+  border-radius: 50%;
+  animation: fallback-orbit 7s linear infinite;
+  transform: translate(-50%, -50%);
+}
+
+[data-three-view="solar"] .lab-fallback-visual i::after {
+  position: absolute;
+  top: 50%;
+  right: -0.19rem;
+  width: 0.38rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #8ee7ff;
+  box-shadow: 0 0 0.6rem rgba(142, 231, 255, 0.55);
+  content: "";
+}
+
+[data-three-view="solar"] .lab-fallback-visual i:nth-child(1) {
+  width: 3.8rem;
+  animation-duration: 3.8s;
+}
+
+[data-three-view="solar"] .lab-fallback-visual i:nth-child(2) {
+  width: 6.2rem;
+  animation-duration: 6.4s;
+}
+
+[data-three-view="solar"] .lab-fallback-visual i:nth-child(3) {
+  width: 8.6rem;
+  animation-duration: 9s;
+}
+
+[data-three-view="gearbox"] .lab-fallback-visual i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3.2rem;
+  aspect-ratio: 1;
+  border: 0.4rem dotted rgba(142, 231, 255, 0.75);
+  border-radius: 50%;
+  background: radial-gradient(circle, transparent 27%, rgba(83, 138, 158, 0.7) 29% 47%, transparent 49%);
+  animation: fallback-gear 7s linear infinite;
+}
+
+[data-three-view="gearbox"] .lab-fallback-visual i:nth-child(1) {
+  transform: translate(-50%, -50%);
+}
+
+[data-three-view="gearbox"] .lab-fallback-visual i:nth-child(2) {
+  width: 2.7rem;
+  transform: translate(1.25rem, -50%);
+  animation-direction: reverse;
+  animation-duration: 4.8s;
+}
+
+[data-three-view="gearbox"] .lab-fallback-visual i:nth-child(3) {
+  width: 2.7rem;
+  transform: translate(-3.95rem, -50%);
+  animation-direction: reverse;
+  animation-duration: 4.8s;
+}
+
+[data-three-view="joint"] .lab-fallback-visual i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #467a8c, #b7e9f6 45%, #386575);
+  box-shadow: 0 0 1rem rgba(142, 231, 255, 0.18);
+}
+
+[data-three-view="joint"] .lab-fallback-visual i:nth-child(1),
+[data-three-view="joint"] .lab-fallback-visual i:nth-child(2) {
+  width: 5rem;
+  height: 0.72rem;
+}
+
+[data-three-view="joint"] .lab-fallback-visual i:nth-child(1) {
+  transform: translate(-4.7rem, -50%) rotate(-18deg);
+}
+
+[data-three-view="joint"] .lab-fallback-visual i:nth-child(2) {
+  transform: translate(-0.3rem, -50%) rotate(18deg);
+}
+
+[data-three-view="joint"] .lab-fallback-visual i:nth-child(3) {
+  width: 2rem;
+  height: 0.42rem;
+  background: #d5f5ff;
+  animation: fallback-joint 2.8s ease-in-out infinite alternate;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+@keyframes fallback-orbit {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes fallback-gear {
+  to { rotate: 360deg; }
+}
+
+@keyframes fallback-joint {
+  to { transform: translate(-50%, -50%) rotate(270deg); }
 }
 
 .generation-pipeline {

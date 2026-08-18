@@ -28,8 +28,11 @@ Then open <http://localhost:8000>.
 - **行星齿轮箱**：复用 CreatorSkills 中已通过机械真值和成片验证的 `three.planetary-gear-kit`，保持 18T 太阳轮 / 3×12T 行星轮 / 42T 固定齿圈关系。
 - **万向节**：复用已验证的 `three.universal-joint-kit`，包含双叉、十字轴、四轴承杯与单十字轴万向节的非匀速输出关系，并覆盖连续输出角在 ±π 边界的展开。
 - **交互与可访问性**：支持拖拽、方向键旋转和 `Home` 复位；减弱动态模式会停止持续动画帧。
+- **图形兼容**：WebGL2 浏览器使用 Three.js r185；仅支持 WebGL1 的浏览器自动切换至 Three.js r162；完全无法创建 WebGL 上下文时保留三张 CSS 轻量动态视图，不再显示错误空卡。
 
 机械组件以项目本地副本运行，不依赖外部组件库；来源、许可证、目标路径和 SHA-256 记录在 [`.creator-components.json`](./.creator-components.json)。太阳系数据与视觉映射位于 [`components/solar-system-data.mjs`](./components/solar-system-data.mjs)。
+
+WebGL1 兼容运行时来自官方 npm 包 `three@0.162.0/build/three.module.min.js`（MIT），本地文件为 `vendor/three-r162.module.min.js`，SHA-256：`ecd9f6b9bc1a12efdf14d13e4c610c012903c141a77d967d3f500bc727f0896c`。
 
 数据来源：
 

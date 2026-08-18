@@ -1,4 +1,3 @@
-import * as THREE from "./vendor/three.module.min.js";
 import {
   SOLAR_SYSTEM_BODIES,
   SUN_VISUAL_RADIUS,
@@ -14,6 +13,48 @@ import {
   PLANETARY_CENTER_DISTANCE,
   PLANETARY_PHASE_OFFSETS,
 } from "./components/mechanical-scene-data.mjs";
+
+let THREE;
+
+function releaseProbeContext(context) {
+  try {
+    context?.getExtension("WEBGL_lose_context")?.loseContext();
+  } catch {
+    // The probe context is tiny and will be reclaimed by the browser.
+  }
+}
+
+function detectGraphicsMode() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1;
+  canvas.height = 1;
+  try {
+    const webgl2 = canvas.getContext("webgl2");
+    if (webgl2) {
+      releaseProbeContext(webgl2);
+      return "webgl2";
+    }
+    const webgl1 =
+      canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    if (webgl1) {
+      releaseProbeContext(webgl1);
+      return "webgl1";
+    }
+  } catch (error) {
+    console.info("AgentV graphics capability probe failed; using lite views.", error);
+  }
+  return "lite";
+}
+
+const GRAPHICS_MODE = detectGraphicsMode();
+
+async function loadThreeRuntime() {
+  if (GRAPHICS_MODE === "lite") return null;
+  if (GRAPHICS_MODE === "webgl1") {
+    return import("./vendor/three-r162.module.min.js");
+  }
+  return import("./vendor/three.module.min.js");
+}
 
 const viewports = [...document.querySelectorAll("[data-three-view]")];
 if (viewports.length !== 3) {
@@ -696,6 +737,36 @@ function animate(time) {
   scheduleAnimation();
 }
 
+function createLiteView(viewport, name, canvas, error = null) {
+  const pointer = { yaw: 0, pitch: 0, targetYaw: 0, targetPitch: 0 };
+  const state = { visible: false, error: Boolean(error), lite: true };
+  viewport.classList.add("is-lite");
+  viewport.classList.toggle("has-error", Boolean(error));
+  viewport.classList.remove("is-webgl-ready");
+  viewport.removeAttribute("tabindex");
+  canvas.setAttribute("aria-hidden", "true");
+  if (error) {
+    console.error(`AgentV ${name} view switched to lite mode.`, error);
+  }
+  return {
+    name,
+    viewport,
+    canvas,
+    state,
+    pointer,
+    renderer: null,
+    model: {
+      diagnostics: { mode: "css-lite", reason: error ? "runtime-fallback" : "no-webgl" },
+      update() {},
+    },
+    visible: false,
+    get error() { return state.error; },
+    render() {},
+    resize() {},
+    resetView() {},
+  };
+}
+
 function createView(viewport) {
   const name = viewport.dataset.threeView;
   const builder = builders[name];
@@ -703,6 +774,10 @@ function createView(viewport) {
   const resetButton = viewport.querySelector("[data-reset-view]");
   if (!builder || !canvas) {
     throw new Error(`AgentV ${name || "unknown"} viewport markup is incomplete.`);
+  }
+
+  if (!THREE || GRAPHICS_MODE === "lite") {
+    return createLiteView(viewport, name, canvas);
   }
 
   const state = {
@@ -725,17 +800,22 @@ function createView(viewport) {
   const showFallback = (message, error) => {
     state.error = true;
     viewport.classList.add("has-error");
+    viewport.classList.add("is-lite");
+    viewport.classList.remove("is-webgl-ready");
     canvas.setAttribute("aria-hidden", "true");
     console.error(message, error);
   };
 
   try {
-    renderer = new THREE.WebGLRenderer({
+    const rendererOptions = {
       canvas,
       alpha: true,
-      antialias: true,
-      powerPreference: "high-performance",
-    });
+      antialias: GRAPHICS_MODE === "webgl2",
+    };
+    if (GRAPHICS_MODE === "webgl2") {
+      rendererOptions.powerPreference = "high-performance";
+    }
+    renderer = new THREE.WebGLRenderer(rendererOptions);
     const compactDevice = window.matchMedia("(max-width: 640px)").matches;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, compactDevice ? 1 : 1.25));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -752,7 +832,7 @@ function createView(viewport) {
   } catch (error) {
     showFallback(`AgentV could not initialize the ${name} view.`, error);
     renderer?.dispose?.();
-    return { name, viewport, canvas, state, pointer, renderer, model, visible: false, error: true, render() {} };
+    return createLiteView(viewport, name, canvas, error);
   }
 
   const render = () => {
@@ -762,6 +842,9 @@ function createView(viewport) {
     modelRoot.rotation.y = pointer.yaw;
     modelRoot.rotation.x = pointer.pitch;
     renderer.render(scene, camera);
+    viewport.classList.add("is-webgl-ready");
+    viewport.classList.remove("is-lite", "has-error");
+    canvas.removeAttribute("aria-hidden");
   };
 
   const resize = () => {
@@ -898,70 +981,86 @@ function createView(viewport) {
   return view;
 }
 
-for (const viewport of viewports) {
-  views.push(createView(viewport));
-}
+loadThreeRuntime()
+  .then((runtime) => {
+    THREE = runtime;
+    for (const viewport of viewports) {
+      views.push(createView(viewport));
+    }
 
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    stopAnimation();
-  } else {
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        stopAnimation();
+      } else {
+        runtimeState.lastTime = performance.now();
+        for (const view of views) view.render();
+        scheduleAnimation();
+      }
+    });
+
+    reducedMotion.addEventListener("change", () => {
+      if (reducedMotion.matches) stopAnimation();
+      for (const view of views) {
+        if (view.error) continue;
+        view.model.update(runtimeState.elapsed);
+        view.render();
+      }
+      scheduleAnimation();
+    });
+
+    window.__agentVThreeLab = Object.freeze({
+      resetView(name) {
+        const view = views.find((item) => item.name === name);
+        view?.resetView();
+      },
+      getDiagnostics() {
+        return {
+          layout: "responsive-grid",
+          graphicsMode: GRAPHICS_MODE,
+          threeRevision: THREE?.REVISION || null,
+          viewCount: views.length,
+          elapsed: runtimeState.elapsed,
+          reducedMotion: reducedMotion.matches,
+          animationFrameScheduled: Boolean(runtimeState.frame),
+          scenes: Object.fromEntries(
+            views.map((view) => [
+              view.name,
+              {
+                visible: view.visible,
+                error: view.error,
+                view: {
+                  yaw: view.pointer.yaw,
+                  pitch: view.pointer.pitch,
+                  targetYaw: view.pointer.targetYaw,
+                  targetPitch: view.pointer.targetPitch,
+                },
+                renderer: view.renderer
+                  ? (view.renderer.capabilities.isWebGL2 ? "webgl2" : "webgl1")
+                  : "css-lite",
+                renderStats: view.renderer ? {
+                  calls: view.renderer.info.render.calls,
+                  triangles: view.renderer.info.render.triangles,
+                  lines: view.renderer.info.render.lines,
+                  points: view.renderer.info.render.points,
+                  geometries: view.renderer.info.memory.geometries,
+                  textures: view.renderer.info.memory.textures,
+                } : null,
+                model: view.model?.diagnostics || null,
+              },
+            ]),
+          ),
+        };
+      },
+    });
+
     runtimeState.lastTime = performance.now();
-    for (const view of views) view.render();
     scheduleAnimation();
-  }
-});
-
-reducedMotion.addEventListener("change", () => {
-  if (reducedMotion.matches) stopAnimation();
-  for (const view of views) {
-    if (view.error) continue;
-    view.model.update(runtimeState.elapsed);
-    view.render();
-  }
-  scheduleAnimation();
-});
-
-window.__agentVThreeLab = Object.freeze({
-  resetView(name) {
-    const view = views.find((item) => item.name === name);
-    view?.resetView();
-  },
-  getDiagnostics() {
-    return {
-      layout: "responsive-grid",
-      viewCount: views.length,
-      elapsed: runtimeState.elapsed,
-      reducedMotion: reducedMotion.matches,
-      animationFrameScheduled: Boolean(runtimeState.frame),
-      scenes: Object.fromEntries(
-        views.map((view) => [
-          view.name,
-          {
-            visible: view.visible,
-            error: view.error,
-            view: {
-              yaw: view.pointer.yaw,
-              pitch: view.pointer.pitch,
-              targetYaw: view.pointer.targetYaw,
-              targetPitch: view.pointer.targetPitch,
-            },
-            renderer: view.renderer?.capabilities.isWebGL2 ? "webgl2" : "webgl1",
-            renderStats: view.renderer ? {
-              calls: view.renderer.info.render.calls,
-              triangles: view.renderer.info.render.triangles,
-              lines: view.renderer.info.render.lines,
-              points: view.renderer.info.render.points,
-              geometries: view.renderer.info.memory.geometries,
-              textures: view.renderer.info.memory.textures,
-            } : null,
-            model: view.model?.diagnostics || null,
-          },
-        ]),
-      ),
-    };
-  },
-});
-
-runtimeState.lastTime = performance.now();
-scheduleAnimation();
+  })
+  .catch((error) => {
+    THREE = null;
+    for (const viewport of viewports) {
+      const canvas = viewport.querySelector("[data-three-canvas]");
+      views.push(createLiteView(viewport, viewport.dataset.threeView, canvas, error));
+    }
+    console.error("AgentV 3D runtime failed to load; lite views remain available.", error);
+  });
