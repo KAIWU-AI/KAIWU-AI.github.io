@@ -376,6 +376,7 @@ a {
   border-radius: 0.5rem;
   background: rgba(9, 18, 24, 0.9);
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
+  transform-origin: 50% 100%;
 }
 
 .prompt-card p {
@@ -426,6 +427,18 @@ a {
   content: "";
 }
 
+.flow-line::after {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  width: 2.6rem;
+  border-top: 1px solid var(--accent);
+  opacity: 0;
+  filter: drop-shadow(0 0 0.4rem var(--accent));
+  content: "";
+  transform: translateX(-50%);
+}
+
 .flow-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -438,6 +451,10 @@ a {
   border: 1px solid var(--line);
   border-radius: 0.45rem;
   background: rgba(10, 14, 21, 0.92);
+  transition:
+    border-color 300ms ease,
+    background-color 300ms ease,
+    transform 300ms ease;
 }
 
 .flow-card > span {
@@ -485,19 +502,28 @@ a {
   width: 0.3rem;
   border-radius: 1rem;
   background: #6c8b98;
+  transform-origin: center;
 }
 
 .flow-icon-intent i:nth-child(1) {
-  height: 1.2rem;
+  height: 0.85rem;
 }
 
 .flow-icon-intent i:nth-child(2) {
-  height: 2.5rem;
-  background: var(--accent);
+  height: 1.7rem;
 }
 
 .flow-icon-intent i:nth-child(3) {
-  height: 1.7rem;
+  height: 2.7rem;
+  background: var(--accent);
+}
+
+.flow-icon-intent i:nth-child(4) {
+  height: 1.35rem;
+}
+
+.flow-icon-intent i:nth-child(5) {
+  height: 0.7rem;
 }
 
 .flow-icon-orbit::before,
@@ -543,6 +569,17 @@ a {
   width: 1.8rem;
   border-top: 1px solid var(--accent);
   transform: rotate(-28deg);
+}
+
+.flow-icon-frame::after {
+  position: absolute;
+  top: 1.25rem;
+  left: calc(50% - 1.6rem);
+  width: 3.2rem;
+  border-top: 1px solid var(--accent);
+  opacity: 0;
+  box-shadow: 0 0 0.7rem var(--accent);
+  content: "";
 }
 
 .visual-note {
@@ -645,6 +682,14 @@ a {
 .direction-card {
   min-width: 0;
   padding: 2rem clamp(1.4rem, 2.6vw, 2.5rem) 2.7rem;
+  transition:
+    background-color 300ms ease,
+    transform 300ms ease;
+}
+
+.direction-card:hover {
+  background: rgba(142, 231, 255, 0.025);
+  transform: translateY(-0.35rem);
 }
 
 .direction-card + .direction-card {
@@ -737,6 +782,312 @@ a {
 .symbol-open span:nth-child(2) {
   transform: translate(-40%, -50%) rotate(45deg);
   border-color: var(--accent);
+}
+
+.workflow-visual.is-visible .prompt-card {
+  animation: prompt-breathe 6.4s ease-in-out infinite;
+}
+
+.workflow-visual.is-visible .flow-line::after {
+  animation: signal-drop 4.8s cubic-bezier(0.3, 0.7, 0.2, 1) infinite;
+}
+
+.workflow-visual.is-visible .flow-card {
+  animation: flow-card-focus 7.2s ease-in-out infinite;
+}
+
+.workflow-visual.is-visible .flow-card:nth-child(2) {
+  animation-delay: 2.4s;
+}
+
+.workflow-visual.is-visible .flow-card:nth-child(3) {
+  animation-delay: 4.8s;
+}
+
+.workflow-visual.is-visible .flow-icon-intent i {
+  animation: voice-wave 1.15s ease-in-out infinite alternate;
+}
+
+.workflow-visual.is-visible .flow-icon-intent i:nth-child(2) {
+  animation-delay: -0.7s;
+}
+
+.workflow-visual.is-visible .flow-icon-intent i:nth-child(3) {
+  animation-delay: -0.25s;
+}
+
+.workflow-visual.is-visible .flow-icon-intent i:nth-child(4) {
+  animation-delay: -0.9s;
+}
+
+.workflow-visual.is-visible .flow-icon-intent i:nth-child(5) {
+  animation-delay: -0.45s;
+}
+
+.workflow-visual.is-visible .flow-icon-orbit::before {
+  animation: orbit-one 7s linear infinite;
+}
+
+.workflow-visual.is-visible .flow-icon-orbit::after {
+  animation: orbit-two 5.5s linear infinite reverse;
+}
+
+.workflow-visual.is-visible .flow-icon-orbit i {
+  animation: core-pulse 2.2s ease-in-out infinite;
+}
+
+.workflow-visual.is-visible .flow-icon-frame::after {
+  animation: frame-scan 2.8s ease-in-out infinite;
+}
+
+.direction-card.is-visible .symbol-intent span:nth-child(1) {
+  animation: scene-orbit 9s linear infinite;
+}
+
+.direction-card.is-visible .symbol-intent span:nth-child(2) {
+  animation: scene-orbit 6s linear infinite reverse;
+}
+
+.direction-card.is-visible .symbol-intent span:nth-child(3) {
+  animation: core-pulse 2.5s ease-in-out infinite;
+}
+
+.direction-card.is-visible .symbol-workflow span {
+  animation: node-talk 2.4s ease-in-out infinite;
+}
+
+.direction-card.is-visible .symbol-workflow span:nth-child(2) {
+  animation-delay: 0.25s;
+}
+
+.direction-card.is-visible .symbol-workflow span:nth-child(3) {
+  animation-delay: 0.5s;
+}
+
+.direction-card.is-visible .symbol-workflow span:nth-child(4) {
+  animation-delay: 0.75s;
+}
+
+.direction-card.is-visible .symbol-open span:first-child {
+  animation: scene-card-left 5s ease-in-out infinite;
+}
+
+.direction-card.is-visible .symbol-open span:last-child {
+  animation: scene-card-right 5s ease-in-out infinite;
+}
+
+.project-panel.is-visible .orb-ring-one {
+  animation: orb-turn 18s linear infinite;
+}
+
+.project-panel.is-visible .orb-ring-two {
+  animation: orb-turn 12s linear infinite reverse;
+}
+
+.project-panel.is-visible .orb-core {
+  animation: orb-breathe 4s ease-in-out infinite;
+}
+
+.motion-ready .reveal-item {
+  opacity: 0;
+  transform: translateY(1.4rem);
+  transition:
+    opacity 700ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.motion-ready .reveal-item.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.motion-ready .direction-card.reveal-item:nth-child(2) {
+  transition-delay: 100ms;
+}
+
+.motion-ready .direction-card.reveal-item:nth-child(3) {
+  transition-delay: 200ms;
+}
+
+@keyframes prompt-breathe {
+  0%,
+  100% {
+    border-color: rgba(142, 231, 255, 0.23);
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
+    transform: translateY(0) scale(1);
+  }
+
+  45% {
+    border-color: rgba(142, 231, 255, 0.42);
+    box-shadow:
+      0 1.2rem 3.4rem rgba(0, 0, 0, 0.4),
+      0 0 1.8rem rgba(142, 231, 255, 0.08);
+    transform: translateY(-0.22rem) scale(1.008);
+  }
+}
+
+@keyframes signal-drop {
+  0%,
+  16% {
+    top: -1px;
+    width: 2.6rem;
+    opacity: 0;
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  62% {
+    top: calc(100% - 1px);
+    width: 1rem;
+    opacity: 0.9;
+  }
+
+  74%,
+  100% {
+    top: calc(100% - 1px);
+    width: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes flow-card-focus {
+  0%,
+  18%,
+  100% {
+    border-color: var(--line);
+    transform: translateY(0);
+  }
+
+  6%,
+  12% {
+    border-color: rgba(142, 231, 255, 0.48);
+    background: rgba(14, 31, 39, 0.94);
+    transform: translateY(-0.25rem);
+  }
+}
+
+@keyframes voice-wave {
+  0% {
+    opacity: 0.45;
+    transform: scaleY(0.42);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes orbit-one {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbit-two {
+  from {
+    transform: rotate(65deg);
+  }
+
+  to {
+    transform: rotate(425deg);
+  }
+}
+
+@keyframes core-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0.7rem rgba(142, 231, 255, 0.25);
+    transform: translate(-50%, -50%) scale(0.86);
+  }
+
+  50% {
+    box-shadow: 0 0 1.7rem rgba(142, 231, 255, 0.65);
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+@keyframes frame-scan {
+  0% {
+    top: 1.15rem;
+    opacity: 0;
+  }
+
+  20%,
+  70% {
+    opacity: 0.8;
+  }
+
+  85%,
+  100% {
+    top: 3.35rem;
+    opacity: 0;
+  }
+}
+
+@keyframes scene-orbit {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+    border-color: rgba(142, 231, 255, 0.65);
+  }
+}
+
+@keyframes node-talk {
+  0%,
+  100% {
+    transform: translateY(0) scaleY(0.8);
+  }
+
+  50% {
+    transform: translateY(-0.35rem) scaleY(1.15);
+  }
+}
+
+@keyframes scene-card-left {
+  0%,
+  100% {
+    transform: translate(-60%, -50%) rotate(45deg);
+  }
+
+  50% {
+    transform: translate(-72%, -56%) rotate(52deg);
+  }
+}
+
+@keyframes scene-card-right {
+  0%,
+  100% {
+    transform: translate(-40%, -50%) rotate(45deg);
+  }
+
+  50% {
+    transform: translate(-28%, -44%) rotate(38deg);
+  }
+}
+
+@keyframes orb-turn {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes orb-breathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 4rem rgba(142, 231, 255, 0.16),
+      inset 0 0 2rem rgba(142, 231, 255, 0.08);
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  50% {
+    box-shadow:
+      0 0 6rem rgba(142, 231, 255, 0.28),
+      inset 0 0 2.5rem rgba(142, 231, 255, 0.16);
+    transform: translate(-50%, -50%) scale(1.035);
+  }
 }
 
 .direction-card h3 {
