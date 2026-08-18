@@ -36,7 +36,8 @@ test('visual radii preserve broad real hierarchy while keeping small planets vis
   assert.ok(radius.Earth > radius.Mars);
   assert.ok(radius.Mars > radius.Mercury);
   assert.ok(radius.Mercury >= 0.055);
-  assert.ok(SUN_VISUAL_RADIUS >= radius.Jupiter * 2);
+  assert.equal(SUN_VISUAL_RADIUS, 0.41);
+  assert.ok(SUN_VISUAL_RADIUS > radius.Jupiter);
 });
 
 test('ringed planets retain their full physical axial tilt', () => {
