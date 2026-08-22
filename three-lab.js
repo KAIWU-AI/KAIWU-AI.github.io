@@ -41,7 +41,7 @@ function detectGraphicsMode() {
       return "webgl1";
     }
   } catch (error) {
-    console.info("AgentV graphics capability probe failed; using lite views.", error);
+    console.info("MindMotion graphics capability probe failed; using lite views.", error);
   }
   return "lite";
 }
@@ -58,7 +58,7 @@ async function loadThreeRuntime() {
 
 const viewports = [...document.querySelectorAll("[data-three-view]")];
 if (viewports.length !== 3) {
-  throw new Error("AgentV 3D lab requires solar, gearbox, and joint viewports.");
+  throw new Error("MindMotion 3D lab requires solar, gearbox, and joint viewports.");
 }
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -746,7 +746,7 @@ function createLiteView(viewport, name, canvas, error = null) {
   viewport.removeAttribute("tabindex");
   canvas.setAttribute("aria-hidden", "true");
   if (error) {
-    console.error(`AgentV ${name} view switched to lite mode.`, error);
+    console.error(`MindMotion ${name} view switched to lite mode.`, error);
   }
   return {
     name,
@@ -773,7 +773,7 @@ function createView(viewport) {
   const canvas = viewport.querySelector("[data-three-canvas]");
   const resetButton = viewport.querySelector("[data-reset-view]");
   if (!builder || !canvas) {
-    throw new Error(`AgentV ${name || "unknown"} viewport markup is incomplete.`);
+    throw new Error(`MindMotion ${name || "unknown"} viewport markup is incomplete.`);
   }
 
   if (!THREE || GRAPHICS_MODE === "lite") {
@@ -830,7 +830,7 @@ function createView(viewport) {
     camera.lookAt(cameraTarget);
     model.update(0);
   } catch (error) {
-    showFallback(`AgentV could not initialize the ${name} view.`, error);
+    showFallback(`MindMotion could not initialize the ${name} view.`, error);
     renderer?.dispose?.();
     return createLiteView(viewport, name, canvas, error);
   }
@@ -863,7 +863,7 @@ function createView(viewport) {
     try {
       resize();
     } catch (error) {
-      showFallback(`AgentV could not resize the ${name} view.`, error);
+      showFallback(`MindMotion could not resize the ${name} view.`, error);
     }
   };
 
@@ -933,7 +933,7 @@ function createView(viewport) {
 
   canvas.addEventListener("webglcontextlost", (event) => {
     event.preventDefault();
-    showFallback(`AgentV ${name} view lost its WebGL context.`, event);
+    showFallback(`MindMotion ${name} view lost its WebGL context.`, event);
   });
 
   const view = {
@@ -1008,7 +1008,7 @@ loadThreeRuntime()
       scheduleAnimation();
     });
 
-    window.__agentVThreeLab = Object.freeze({
+    window.__mindMotionThreeLab = Object.freeze({
       resetView(name) {
         const view = views.find((item) => item.name === name);
         view?.resetView();
@@ -1062,5 +1062,5 @@ loadThreeRuntime()
       const canvas = viewport.querySelector("[data-three-canvas]");
       views.push(createLiteView(viewport, viewport.dataset.threeView, canvas, error));
     }
-    console.error("AgentV 3D runtime failed to load; lite views remain available.", error);
+    console.error("MindMotion 3D runtime failed to load; lite views remain available.", error);
   });

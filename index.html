@@ -3,34 +3,31 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#07090d">
+    <meta name="theme-color" content="#100f16">
     <meta name="color-scheme" content="dark">
     <meta
       name="description"
-      content="AgentV 是 KAIWU-AI 面向教育领域打造的 AI 视频生成产品，可生成 3D 场景、数字人场景及多样化教育视频。AgentV creates educational videos with AI-generated 3D scenes, digital humans, and more."
+      content="MindMotion 是 KAIWU-AI 面向教育领域打造的 AI 视频生成产品，可生成 3D 场景、数字人场景及多样化教育视频。MindMotion creates educational videos with AI-generated 3D scenes, digital humans, and more."
     >
     <meta name="robots" content="index, follow">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="KAIWU-AI">
-    <meta property="og:title" content="AgentV by KAIWU-AI · AI 教育视频生成">
+    <meta property="og:site_name" content="MindMotion by KAIWU-AI">
+    <meta property="og:title" content="MindMotion by KAIWU-AI · AI 教育视频生成">
     <meta
       property="og:description"
-      content="用 AgentV 将知识转化为 3D、数字人与多样场景下的教育视频。Turn knowledge into educational videos with AgentV."
+      content="用 MindMotion 将知识转化为 3D、数字人与多样场景下的教育视频。Turn knowledge into educational videos with MindMotion."
     >
     <meta property="og:url" content="https://kaiwu-ai.github.io/">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="AgentV by KAIWU-AI">
+    <meta name="twitter:title" content="MindMotion by KAIWU-AI">
     <meta
       name="twitter:description"
-      content="AI-powered educational video generation with 3D scenes, digital humans, and more."
+      content="MindMotion turns educational ideas into AI-powered videos with 3D scenes, digital humans, and more."
     >
     <link rel="canonical" href="https://kaiwu-ai.github.io/">
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23101620'/%3E%3Cpath d='M8 7v18h4v-7l6 7h6l-8-9 7-9h-5l-6 8V7z' fill='%238ee7ff'/%3E%3C/svg%3E"
-    >
+    <link rel="icon" href="assets/mindmotion-logo.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
-    <title>AgentV by KAIWU-AI · AI 教育视频生成</title>
+    <title>MindMotion by KAIWU-AI · AI 教育视频生成</title>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -38,7 +35,7 @@
         "name": "KAIWU-AI",
         "url": "https://kaiwu-ai.github.io/",
         "sameAs": ["https://github.com/KAIWU-AI"],
-        "description": "KAIWU-AI builds AgentV, an AI video generation product for education with 3D scenes, digital humans, and diverse learning scenarios."
+        "description": "KAIWU-AI builds MindMotion, an AI video generation product for education with 3D scenes, digital humans, and diverse learning scenarios."
       }
     </script>
     <script src="script.js" defer></script>
@@ -50,7 +47,7 @@
         document.querySelectorAll("[data-three-view]").forEach((viewport) => {
           viewport.classList.add("has-error");
         });
-        console.error("AgentV 3D lab module failed to load.", error);
+        console.error("MindMotion 3D lab module failed to load.", error);
       });
     </script>
   </head>
@@ -60,9 +57,12 @@
 
     <header class="site-header">
       <nav class="nav container" aria-label="主导航 / Main navigation">
-        <a class="brand" href="#top" aria-label="KAIWU-AI 首页 / Home">
-          <span class="brand-mark" aria-hidden="true">K</span>
-          <span>KAIWU-AI</span>
+        <a class="brand" href="#top" aria-label="MindMotion 首页 / Home">
+          <img class="brand-mark" src="assets/mindmotion-logo.svg" alt="">
+          <span class="brand-copy">
+            <span class="brand-wordmark">MindMotion</span>
+            <small>by KAIWU-AI</small>
+          </span>
         </a>
 
         <button
@@ -77,7 +77,7 @@
         </button>
 
         <div class="nav-links" id="nav-links">
-          <a href="#mission">AgentV / Product</a>
+          <a href="#mission">MindMotion / Product</a>
           <a href="#directions">能力 / Capabilities</a>
           <a href="#lab">3D 实验场 / 3D Lab</a>
           <a href="#projects">项目 / Projects</a>
@@ -99,15 +99,16 @@
             KAIWU-AI 核心产品 · A KAIWU-AI product
           </p>
           <h1 id="hero-title">
-            <span>AgentV，让知识</span>
+            <span class="hero-product-name">MindMotion，</span>
+            <span>让知识</span>
             <span class="muted-title">成为生动的视频。</span>
           </h1>
           <p class="hero-title-en">Turn knowledge into vivid educational videos.</p>
           <p class="hero-lead">
-            AgentV 是面向教育领域的 AI 视频生成产品。输入教学主题与表达意图，即可构建包含 3D 场景、数字人讲解与多样化视觉场景的教育视频。
+            MindMotion 是面向教育领域的 AI 视频生成产品。输入教学主题与表达意图，即可构建包含 3D 场景、数字人讲解与多样化视觉场景的教育视频。
           </p>
           <p class="hero-lead hero-lead-en">
-            AgentV is an AI video generation product for education. Turn a teaching
+            MindMotion is an AI video generation product for education. Turn a teaching
             topic into a video with 3D environments, digital human presenters, and
             diverse visual learning scenarios.
           </p>
@@ -117,15 +118,15 @@
               <span aria-hidden="true">↗</span>
             </a>
             <a class="button button-secondary" href="#mission">
-              探索 AgentV
+              探索 MindMotion
               <span aria-hidden="true">↓</span>
             </a>
           </div>
         </div>
 
-        <div class="workflow-visual" aria-label="AgentV 教育视频生成工作流示意图">
+        <div class="workflow-visual" aria-label="MindMotion 教育视频生成工作流示意图">
           <div class="visual-head">
-            <span class="visual-label">AGENTV / EDUCATION VIDEO WORKFLOW</span>
+            <span class="visual-label">MINDMOTION / EDUCATION VIDEO WORKFLOW</span>
             <span class="visual-live"><i aria-hidden="true"></i> AI</span>
           </div>
           <div class="prompt-card">
@@ -246,7 +247,7 @@
           </article>
         </div>
 
-        <ol class="generation-pipeline" aria-label="AgentV 3D 场景生成流程">
+        <ol class="generation-pipeline" aria-label="MindMotion 3D 场景生成流程">
           <li><span>01</span><strong>主题理解</strong><small>Topic analysis</small></li>
           <li><span>02</span><strong>结构建模</strong><small>Procedural modeling</small></li>
           <li><span>03</span><strong>镜头编排</strong><small>Camera direction</small></li>
@@ -257,7 +258,7 @@
       <section class="statement section container" id="mission" aria-labelledby="mission-title">
         <div class="section-kicker">
           <span>02</span>
-          <p>认识 AgentV / Meet AgentV</p>
+          <p>认识 MindMotion / Meet MindMotion</p>
         </div>
         <div class="statement-copy">
           <h2 id="mission-title">
@@ -266,10 +267,10 @@
           </h2>
           <div>
             <p>
-              AgentV 面向课程讲解、知识科普与多样化教学表达，让教育内容能够以更直观、更丰富的视觉场景呈现。
+              MindMotion 面向课程讲解、知识科普与多样化教学表达，让教育内容能够以更直观、更丰富的视觉场景呈现。
             </p>
             <p lang="en">
-              AgentV supports course explanations, knowledge communication, and diverse
+              MindMotion supports course explanations, knowledge communication, and diverse
               teaching formats by turning educational content into richer visual scenes.
             </p>
           </div>
@@ -347,10 +348,10 @@
               <small>Open-source projects coming soon.</small>
             </h2>
             <p>
-              围绕 AgentV 与 AI 教育视频生成的首批开源工作正在整理中。代码、文档与参与方式准备就绪后，将首先在 GitHub 公开。
+              围绕 MindMotion 与 AI 教育视频生成的首批开源工作正在整理中。代码、文档与参与方式准备就绪后，将首先在 GitHub 公开。
             </p>
             <p lang="en">
-              Our first open-source work around AgentV and AI educational video
+              Our first open-source work around MindMotion and AI educational video
               generation is in preparation. Code, documentation, and ways to contribute
               will be shared on GitHub when ready.
             </p>
@@ -362,7 +363,7 @@
           <div class="project-orb" aria-hidden="true">
             <span class="orb-ring orb-ring-one"></span>
             <span class="orb-ring orb-ring-two"></span>
-            <span class="orb-core">K</span>
+            <span class="orb-core">M</span>
           </div>
         </div>
       </section>
@@ -370,11 +371,11 @@
       <section class="cta section container" aria-labelledby="cta-title">
         <p class="eyebrow">
           <span class="status-dot" aria-hidden="true"></span>
-          FOLLOW AGENTV
+          FOLLOW MINDMOTION
         </p>
         <h2 id="cta-title">
-          关注 AgentV 的下一步。<br>
-          <span>Follow what AgentV builds next.</span>
+          关注 MindMotion 的下一步。<br>
+          <span>Follow what MindMotion builds next.</span>
         </h2>
         <p>
           产品与开源进展将在 GitHub 持续更新。<br>
@@ -390,11 +391,14 @@
     <footer class="site-footer">
       <div class="container footer-inner">
         <div>
-          <a class="brand footer-brand" href="#top">
-            <span class="brand-mark" aria-hidden="true">K</span>
-            <span>KAIWU-AI</span>
+          <a class="brand footer-brand" href="#top" aria-label="MindMotion 首页 / Home">
+            <img class="brand-mark" src="assets/mindmotion-logo.svg" alt="">
+            <span class="brand-copy">
+              <span class="brand-wordmark">MindMotion</span>
+              <small>by KAIWU-AI</small>
+            </span>
           </a>
-          <p>AgentV · AI 教育视频生成。<br><span lang="en">AI video generation for education.</span></p>
+          <p>MindMotion · AI 教育视频生成。<br><span lang="en">AI video generation for education.</span></p>
         </div>
         <div class="footer-meta">
           <a href="https://github.com/KAIWU-AI">GitHub ↗</a>

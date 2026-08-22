@@ -236,7 +236,7 @@
   reducedMotion.addEventListener("change", start);
   resize();
   start();
-  window.__agentVStarfield = Object.freeze({
+  window.__mindMotionStarfield = Object.freeze({
     getDiagnostics() {
       return {
         particleCount: particles.length,

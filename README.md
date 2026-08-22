@@ -1,8 +1,10 @@
 # KAIWU-AI Organization Website
 
-这是 [KAIWU-AI](https://github.com/KAIWU-AI) 的官方 GitHub Pages 组织主页，主要介绍面向教育领域的 AI 视频生成产品 AgentV。AgentV 可生成 3D 场景、数字人场景及多样化教育视频。
+这是 [KAIWU-AI](https://github.com/KAIWU-AI) 的官方 GitHub Pages 组织主页，主要介绍面向教育领域的 AI 视频生成产品 MindMotion。MindMotion 可生成 3D 场景、数字人场景及多样化教育视频。
 
-This is the official GitHub Pages website for [KAIWU-AI](https://github.com/KAIWU-AI), introducing AgentV, an AI video generation product for education that creates 3D scenes, digital human presenters, and diverse learning scenarios.
+This is the official GitHub Pages website for [KAIWU-AI](https://github.com/KAIWU-AI), introducing MindMotion, an AI video generation product for education that creates 3D scenes, digital human presenters, and diverse learning scenarios.
+
+MindMotion 的 Logo、紫色品牌 token 与连续工作台视觉语言来自 AgentV 已合并的 [PR #24](https://github.com/KAIWU-AI/AgentV/pull/24)，官网仅做品牌与界面语言融合，保留原有核心布局和 3D 交互。资源来源、固定提交、SHA-256 与适配边界见 [`docs/mindmotion-brand-integration.md`](./docs/mindmotion-brand-integration.md)。
 
 ## 本地预览 / Local preview
 
