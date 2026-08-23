@@ -1,5 +1,7 @@
 export const WINDOWS_DOWNLOAD_URL =
-  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.1/MindMotion_0.1.1_x64-setup.exe";
+  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.2/MindMotion_0.1.2_x64-setup.exe";
+export const MACOS_DOWNLOAD_URL =
+  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.2/MindMotion_0.1.2_aarch64.dmg";
 
 export function detectDesktopPlatform(navigatorLike = {}) {
   const userAgent = String(navigatorLike.userAgent || "").trim().toLowerCase();
@@ -94,7 +96,8 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
   const platform = detectDesktopPlatform(navigatorLike);
   const label = button.querySelector("[data-download-label]");
   const icon = button.querySelector("[data-download-icon]");
-  const downloadUrl = button.dataset.downloadUrl || WINDOWS_DOWNLOAD_URL;
+  const windowsDownloadUrl = button.dataset.windowsDownloadUrl || WINDOWS_DOWNLOAD_URL;
+  const macosDownloadUrl = button.dataset.macosDownloadUrl || MACOS_DOWNLOAD_URL;
 
   button.dataset.platform = platform;
   button.addEventListener("click", (event) => {
@@ -103,16 +106,37 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
     }
   });
 
-  if (platform === "windows") {
-    button.setAttribute("href", downloadUrl);
-    button.setAttribute("download", "MindMotion_0.1.1_x64-setup.exe");
-    button.setAttribute("aria-label", "下载 MindMotion Windows 安装包");
-    button.setAttribute("title", "下载 MindMotion 0.1.1 Windows x64 安装包");
+  const enableDownload = ({ url, filename, ariaLabel, title, labelText }) => {
+    button.setAttribute("href", url);
+    button.setAttribute("download", filename);
+    button.setAttribute("aria-label", ariaLabel);
+    button.setAttribute("title", title);
     button.removeAttribute("aria-disabled");
     button.removeAttribute("tabindex");
     button.classList.remove("is-disabled");
-    if (label) label.textContent = "下载 Windows 版";
+    if (label) label.textContent = labelText;
     if (icon) icon.textContent = "↓";
+  };
+
+  if (platform === "windows") {
+    enableDownload({
+      url: windowsDownloadUrl,
+      filename: "MindMotion_0.1.2_x64-setup.exe",
+      ariaLabel: "下载 MindMotion 0.1.2 Windows x64 安装包",
+      title: "下载 MindMotion 0.1.2 Windows x64 安装包",
+      labelText: "下载 Windows 版",
+    });
+    return platform;
+  }
+
+  if (platform === "macos") {
+    enableDownload({
+      url: macosDownloadUrl,
+      filename: "MindMotion_0.1.2_aarch64.dmg",
+      ariaLabel: "下载 MindMotion 0.1.2 macOS Apple 芯片安装包",
+      title: "下载 MindMotion 0.1.2 macOS Apple 芯片安装包",
+      labelText: "下载 macOS 版",
+    });
     return platform;
   }
 
@@ -120,18 +144,10 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
   button.removeAttribute("download");
   button.setAttribute("aria-disabled", "true");
   button.setAttribute("tabindex", "-1");
+  button.setAttribute("aria-label", "MindMotion 暂不支持当前系统");
+  button.setAttribute("title", "MindMotion 暂不支持当前系统");
   button.classList.add("is-disabled");
-
-  if (platform === "macos") {
-    button.setAttribute("aria-label", "MindMotion macOS 版敬请期待");
-    button.setAttribute("title", "MindMotion macOS 版敬请期待");
-    if (label) label.textContent = "macOS 版敬请期待";
-  } else {
-    button.setAttribute("aria-label", "MindMotion 暂仅支持 Windows");
-    button.setAttribute("title", "MindMotion 暂仅支持 Windows");
-    if (label) label.textContent = "暂仅支持 Windows";
-  }
-
+  if (label) label.textContent = "暂不支持当前系统";
   if (icon) icon.textContent = "…";
   return platform;
 }
