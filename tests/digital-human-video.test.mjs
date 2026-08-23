@@ -98,7 +98,11 @@ test('the complete core-capabilities section has a masked decorative background 
   assert.match(styles, /\.directions-video-section\s*\{[^}]*isolation:\s*isolate/s);
   assert.match(styles, /\.direction-video-shell\s*\{[^}]*opacity:\s*0/s);
   assert.match(styles, /\.directions-video-section\.is-video-active\s+\.direction-video-shell\s*\{[^}]*opacity:/s);
-  assert.match(styles, /\.direction-video\s*\{[^}]*object-fit:\s*cover/s);
+  assert.match(styles, /\.direction-video\s*\{[^}]*width:\s*100%[^}]*height:\s*100%[^}]*object-fit:\s*contain/s);
+  assert.match(styles, /\.direction-video\s*\{[^}]*object-position:\s*center/s);
+  assert.doesNotMatch(styles, /\.direction-video\s*\{[^}]*object-fit:\s*cover/s);
+  assert.doesNotMatch(styles, /\.direction-video\s*\{[^}]*\btransform\s*:/s);
+  assert.match(styles, /\.direction-video-shell\s*\{[^}]*background:\s*transparent/s);
   assert.match(styles, /\.direction-video-mask\s*\{[^}]*background:/s);
 });
 
