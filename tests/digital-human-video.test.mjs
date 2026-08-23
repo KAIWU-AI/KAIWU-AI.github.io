@@ -15,7 +15,7 @@ async function runVideoRuntime({ reduced = false, hasObserver = true, rejectPlay
   const script = await text('script.js');
   const calls = { play: 0, pause: 0 };
   const classes = new Set();
-  const card = {
+  const section = {
     classList: {
       add: (name) => classes.add(name),
       remove: (name) => classes.delete(name),
@@ -28,7 +28,7 @@ async function runVideoRuntime({ reduced = false, hasObserver = true, rejectPlay
     currentTime: 0,
     muted: false,
     defaultMuted: false,
-    closest: () => card,
+    closest: () => section,
     addEventListener: () => {},
     pause: () => {
       calls.pause += 1;
@@ -72,31 +72,32 @@ async function runVideoRuntime({ reduced = false, hasObserver = true, rejectPlay
 
   runInNewContext(script, context);
   await Promise.resolve();
-  return { calls, classes, observers, card };
+  return { calls, classes, observers, section };
 }
 
-test('the digital-human capability has a masked decorative background video', async () => {
+test('the complete core-capabilities section has a masked decorative background video', async () => {
   const [html, styles] = await Promise.all([text('index.html'), text('styles.css')]);
 
-  const card = html.match(
-    /<article class="direction-card direction-card-video" data-scroll-video-card>[\s\S]*?<\/article>/,
+  const section = html.match(
+    /<section class="directions section container directions-video-section" id="directions" data-scroll-video-section[\s\S]*?<\/section>/,
   )?.[0];
 
-  assert.ok(card, 'digital-human card must opt in to the video background behavior');
-  assert.match(card, /02 \/ DIGITAL HUMAN/);
-  assert.match(card, /class="direction-video-shell" aria-hidden="true"/);
-  assert.match(card, /<video[^>]*data-scroll-video[^>]*>/);
-  assert.match(card, /src="assets\/videos\/zhang-industrial-engineering-bg\.mp4"/);
-  assert.match(card, /poster="assets\/videos\/zhang-industrial-engineering-poster\.jpg"/);
-  assert.match(card, /\bmuted\b/);
-  assert.match(card, /\bplaysinline\b/);
-  assert.match(card, /preload="metadata"/);
-  assert.doesNotMatch(card, /\bcontrols\b/);
-  assert.match(card, /class="direction-video-mask"/);
+  assert.ok(section, 'the entire directions section must opt in to the video background behavior');
+  assert.equal((section.match(/class="direction-card"/g) || []).length, 3);
+  assert.match(section, /class="direction-video-shell" aria-hidden="true"/);
+  assert.match(section, /<video[^>]*data-scroll-video[^>]*>/);
+  assert.match(section, /src="assets\/videos\/zhang-industrial-engineering-bg\.mp4"/);
+  assert.match(section, /poster="assets\/videos\/zhang-industrial-engineering-poster\.jpg"/);
+  assert.match(section, /\bmuted\b/);
+  assert.match(section, /\bplaysinline\b/);
+  assert.match(section, /preload="metadata"/);
+  assert.doesNotMatch(section, /\bcontrols\b/);
+  assert.match(section, /class="direction-video-mask"/);
+  assert.doesNotMatch(html, /direction-card-video|data-scroll-video-card/);
 
-  assert.match(styles, /\.direction-card-video\s*\{[^}]*isolation:\s*isolate/s);
+  assert.match(styles, /\.directions-video-section\s*\{[^}]*isolation:\s*isolate/s);
   assert.match(styles, /\.direction-video-shell\s*\{[^}]*opacity:\s*0/s);
-  assert.match(styles, /\.direction-card-video\.is-video-active\s+\.direction-video-shell\s*\{[^}]*opacity:/s);
+  assert.match(styles, /\.directions-video-section\.is-video-active\s+\.direction-video-shell\s*\{[^}]*opacity:/s);
   assert.match(styles, /\.direction-video\s*\{[^}]*object-fit:\s*cover/s);
   assert.match(styles, /\.direction-video-mask\s*\{[^}]*background:/s);
 });
@@ -109,6 +110,7 @@ test('the background video pauses offscreen and for reduced-motion users', async
   assert.match(script, /video\.play\(\)/);
   assert.match(script, /video\.pause\(\)/);
   assert.match(script, /reducedMotion\.matches/);
+  assert.match(script, /\[data-scroll-video-section\]/);
   assert.match(script, /is-video-active/);
 });
 

@@ -40,8 +40,8 @@ const revealTargets = document.querySelectorAll(
 const scrollVideos = document.querySelectorAll("[data-scroll-video]");
 
 scrollVideos.forEach((video) => {
-  const card = video.closest("[data-scroll-video-card]");
-  if (!card) {
+  const section = video.closest("[data-scroll-video-section]");
+  if (!section) {
     return;
   }
 
@@ -63,12 +63,12 @@ scrollVideos.forEach((video) => {
 
   if (reducedMotion.matches) {
     video.pause();
-    card.classList.add("is-video-active");
+    section.classList.add("is-video-active");
     return;
   }
 
   const playVideo = () => {
-    card.classList.add("is-video-active");
+    section.classList.add("is-video-active");
     video.play().catch(() => {
       // Muted autoplay can still be blocked by browser policy; the poster remains visible.
     });
@@ -76,7 +76,7 @@ scrollVideos.forEach((video) => {
 
   if (!("IntersectionObserver" in window)) {
     video.pause();
-    card.classList.add("is-video-active");
+    section.classList.add("is-video-active");
     return;
   }
 
@@ -89,13 +89,13 @@ scrollVideos.forEach((video) => {
         }
 
         video.pause();
-        card.classList.remove("is-video-active");
+        section.classList.remove("is-video-active");
       });
     },
     { threshold: 0.35 },
   );
 
-  videoObserver.observe(card);
+  videoObserver.observe(section);
 });
 
 if (reducedMotion.matches || !("IntersectionObserver" in window)) {

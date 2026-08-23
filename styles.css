@@ -737,16 +737,21 @@ a {
     transform 300ms ease;
 }
 
-.direction-card-video {
+.directions-video-section {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: rgba(16, 15, 22, 0.92);
+  background: rgba(16, 15, 22, 0.46);
 }
 
-.direction-card-video > :not(.direction-video-shell) {
+.directions-video-section > :not(.direction-video-shell) {
   position: relative;
   z-index: 2;
+}
+
+.directions-video-section .direction-list {
+  background: rgba(16, 15, 22, 0.28);
+  backdrop-filter: blur(1.5px);
 }
 
 .direction-video-shell {
@@ -759,8 +764,8 @@ a {
   transition: opacity 900ms ease;
 }
 
-.direction-card-video.is-video-active .direction-video-shell {
-  opacity: 0.72;
+.directions-video-section.is-video-active .direction-video-shell {
+  opacity: 0.58;
 }
 
 .direction-video {
@@ -768,7 +773,7 @@ a {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: saturate(0.72) contrast(1.06) brightness(0.62);
+  filter: saturate(0.72) contrast(1.06) brightness(0.56);
   transform: scale(1.015);
 }
 
@@ -776,8 +781,8 @@ a {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(16, 15, 22, 0.5) 0%, rgba(16, 15, 22, 0.76) 58%, rgba(16, 15, 22, 0.94) 100%),
-    radial-gradient(circle at 50% 34%, rgba(91, 33, 182, 0.08), rgba(16, 15, 22, 0.58) 72%);
+    linear-gradient(180deg, rgba(16, 15, 22, 0.62) 0%, rgba(16, 15, 22, 0.54) 42%, rgba(16, 15, 22, 0.86) 100%),
+    radial-gradient(circle at 50% 42%, rgba(91, 33, 182, 0.08), rgba(16, 15, 22, 0.48) 76%);
 }
 
 .direction-card:hover {
@@ -2193,7 +2198,7 @@ a {
     opacity: 0.58;
   }
 
-  .direction-card-video.is-video-active .direction-video-shell {
-    opacity: 0.42;
+  .directions-video-section.is-video-active .direction-video-shell {
+    opacity: 0.36;
   }
 }

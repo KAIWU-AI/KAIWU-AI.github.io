@@ -277,7 +277,22 @@
         </div>
       </section>
 
-      <section class="directions section container" id="directions" aria-labelledby="directions-title">
+      <section class="directions section container directions-video-section" id="directions" data-scroll-video-section aria-labelledby="directions-title">
+        <div class="direction-video-shell" aria-hidden="true">
+          <video
+            class="direction-video"
+            data-scroll-video
+            data-start-at="14.1"
+            src="assets/videos/zhang-industrial-engineering-bg.mp4"
+            poster="assets/videos/zhang-industrial-engineering-poster.jpg"
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            tabindex="-1"
+          ></video>
+          <div class="direction-video-mask"></div>
+        </div>
         <div class="section-heading">
           <div class="section-kicker">
             <span>03</span>
@@ -302,22 +317,7 @@
             </p>
           </article>
 
-          <article class="direction-card direction-card-video" data-scroll-video-card>
-            <div class="direction-video-shell" aria-hidden="true">
-              <video
-                class="direction-video"
-                data-scroll-video
-                data-start-at="14.1"
-                src="assets/videos/zhang-industrial-engineering-bg.mp4"
-                poster="assets/videos/zhang-industrial-engineering-poster.jpg"
-                muted
-                loop
-                playsinline
-                preload="metadata"
-                tabindex="-1"
-              ></video>
-              <div class="direction-video-mask"></div>
-            </div>
+          <article class="direction-card">
             <p class="direction-index">02 / DIGITAL HUMAN</p>
             <div class="direction-symbol symbol-workflow" aria-hidden="true">
               <span></span><span></span><span></span><span></span>
