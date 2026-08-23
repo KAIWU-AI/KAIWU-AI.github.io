@@ -737,6 +737,49 @@ a {
     transform 300ms ease;
 }
 
+.direction-card-video {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: rgba(16, 15, 22, 0.92);
+}
+
+.direction-card-video > :not(.direction-video-shell) {
+  position: relative;
+  z-index: 2;
+}
+
+.direction-video-shell {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 900ms ease;
+}
+
+.direction-card-video.is-video-active .direction-video-shell {
+  opacity: 0.72;
+}
+
+.direction-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(0.72) contrast(1.06) brightness(0.62);
+  transform: scale(1.015);
+}
+
+.direction-video-mask {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(16, 15, 22, 0.5) 0%, rgba(16, 15, 22, 0.76) 58%, rgba(16, 15, 22, 0.94) 100%),
+    radial-gradient(circle at 50% 34%, rgba(91, 33, 182, 0.08), rgba(16, 15, 22, 0.58) 72%);
+}
+
 .direction-card:hover {
   background: rgba(139, 92, 246, 0.025);
   transform: translateY(-0.35rem);
@@ -2148,5 +2191,9 @@ a {
 
   .starfield-canvas {
     opacity: 0.58;
+  }
+
+  .direction-card-video.is-video-active .direction-video-shell {
+    opacity: 0.42;
   }
 }

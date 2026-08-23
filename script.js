@@ -37,6 +37,67 @@ const revealTargets = document.querySelectorAll(
   ".workflow-visual, .statement-copy, .section-heading, .direction-card, .project-panel, .cta",
 );
 
+const scrollVideos = document.querySelectorAll("[data-scroll-video]");
+
+scrollVideos.forEach((video) => {
+  const card = video.closest("[data-scroll-video-card]");
+  if (!card) {
+    return;
+  }
+
+  video.muted = true;
+  video.defaultMuted = true;
+
+  const startAt = Number.parseFloat(video.dataset.startAt || "0");
+  const seekToStart = () => {
+    if (Number.isFinite(startAt) && video.duration > startAt) {
+      video.currentTime = startAt;
+    }
+  };
+
+  if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+    seekToStart();
+  } else {
+    video.addEventListener("loadedmetadata", seekToStart, { once: true });
+  }
+
+  if (reducedMotion.matches) {
+    video.pause();
+    card.classList.add("is-video-active");
+    return;
+  }
+
+  const playVideo = () => {
+    card.classList.add("is-video-active");
+    video.play().catch(() => {
+      // Muted autoplay can still be blocked by browser policy; the poster remains visible.
+    });
+  };
+
+  if (!("IntersectionObserver" in window)) {
+    video.pause();
+    card.classList.add("is-video-active");
+    return;
+  }
+
+  const videoObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          playVideo();
+          return;
+        }
+
+        video.pause();
+        card.classList.remove("is-video-active");
+      });
+    },
+    { threshold: 0.35 },
+  );
+
+  videoObserver.observe(card);
+});
+
 if (reducedMotion.matches || !("IntersectionObserver" in window)) {
   revealTargets.forEach((target) => target.classList.add("is-visible"));
 } else {
