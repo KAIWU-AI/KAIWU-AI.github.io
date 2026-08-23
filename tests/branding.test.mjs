@@ -52,18 +52,28 @@ test('public product surfaces are fully branded as MindMotion', async () => {
   assert.match(html, /MindMotion \/ Product/);
 });
 
-test('official PR #24 logo is reused byte-for-byte and wired into brand surfaces', async () => {
+test('hero workflow prompt describes large language and diffusion models', async () => {
+  const html = await text('index.html');
+
+  assert.match(html, /生成一节关于大语言模型和扩散模型的可视化课程/);
+  assert.match(html, /Create a visual lesson about large language models and diffusion models\./);
+  assert.doesNotMatch(html, /生成一节关于宇宙与行星的可视化课程/);
+  assert.doesNotMatch(html, /Create a visual lesson about space and planets\./);
+});
+
+test('the user-provided M logo is reused byte-for-byte across public brand surfaces', async () => {
   const [html, logo] = await Promise.all([
     text('index.html'),
-    readFile(resolve(root, 'assets/mindmotion-logo.svg')),
+    readFile(resolve(root, 'assets/mindmotion-logo.png')),
   ]);
 
   assert.equal(
     createHash('sha256').update(logo).digest('hex'),
-    '0b5f7c73cf8e12280643583584ade4ab233f49c6ab84e286f085c029d1da528f',
+    'a693a476edb223143bf0b9d6cae1900365ed6b9e90978e8f33ae1c8daf93d0bd',
   );
-  assert.match(html, /href="assets\/mindmotion-logo\.svg"/);
-  assert.equal((html.match(/src="assets\/mindmotion-logo\.svg"/g) || []).length, 2);
+  assert.match(html, /href="assets\/mindmotion-logo\.png" type="image\/png"/);
+  assert.equal((html.match(/src="assets\/mindmotion-logo\.png"/g) || []).length, 2);
+  assert.doesNotMatch(html, /mindmotion-logo\.svg/);
   assert.match(html, /<span class="brand-wordmark">MindMotion<\/span>/);
   assert.match(html, /<small>by KAIWU-AI<\/small>/);
 });

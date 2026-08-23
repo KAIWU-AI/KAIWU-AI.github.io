@@ -25,7 +25,7 @@
       content="MindMotion turns educational ideas into AI-powered videos with 3D scenes, digital humans, and more."
     >
     <link rel="canonical" href="https://kaiwu-ai.github.io/">
-    <link rel="icon" href="assets/mindmotion-logo.svg" type="image/svg+xml">
+    <link rel="icon" href="assets/mindmotion-logo.png" type="image/png">
     <link rel="stylesheet" href="styles.css">
     <title>MindMotion by KAIWU-AI · AI 教育视频生成</title>
     <script type="application/ld+json">
@@ -59,7 +59,7 @@
     <header class="site-header">
       <nav class="nav container" aria-label="主导航 / Main navigation">
         <a class="brand" href="#top" aria-label="MindMotion 首页 / Home">
-          <img class="brand-mark" src="assets/mindmotion-logo.svg" alt="">
+          <img class="brand-mark" src="assets/mindmotion-logo.png" alt="">
           <span class="brand-copy">
             <span class="brand-wordmark">MindMotion</span>
             <small>by KAIWU-AI</small>
@@ -130,7 +130,7 @@
           </div>
         </div>
 
-        <div class="workflow-visual" aria-label="MindMotion 教育视频生成工作流示意图">
+        <div class="workflow-visual" data-scroll-video-section aria-label="MindMotion 教育视频生成工作流示意图">
           <div class="visual-head">
             <span class="visual-label">MINDMOTION / EDUCATION VIDEO WORKFLOW</span>
             <span class="visual-live"><i aria-hidden="true"></i> AI</span>
@@ -138,14 +138,18 @@
           <div class="prompt-card">
             <span class="prompt-symbol" aria-hidden="true">✦</span>
             <p>
-              生成一节关于宇宙与行星的可视化课程
-              <small>Create a visual lesson about space and planets.</small>
+              生成一节关于大语言模型和扩散模型的可视化课程
+              <small>Create a visual lesson about large language models and diffusion models.</small>
             </p>
             <span class="prompt-arrow" aria-hidden="true">↵</span>
           </div>
           <div class="flow-line" aria-hidden="true"></div>
           <div class="flow-grid">
             <article class="flow-card">
+              <div class="flow-card-video-shell" aria-hidden="true">
+                <video class="flow-card-video" data-scroll-video data-clip-window="3-10" src="assets/videos/brainstorm-avatar-card.mp4" poster="assets/videos/brainstorm-avatar-card-poster.jpg" muted loop playsinline preload="metadata"></video>
+                <div class="flow-card-video-mask"></div>
+              </div>
               <span>01</span>
               <div class="flow-icon flow-icon-intent" aria-hidden="true">
                 <i></i><i></i><i></i><i></i><i></i>
@@ -154,6 +158,10 @@
               <small>Learning topic</small>
             </article>
             <article class="flow-card flow-card-accent">
+              <div class="flow-card-video-shell" aria-hidden="true">
+                <video class="flow-card-video" data-scroll-video data-clip-window="3-10" src="assets/videos/brainstorm-female-teacher-card.mp4" poster="assets/videos/brainstorm-female-teacher-card-poster.jpg" muted loop playsinline preload="metadata"></video>
+                <div class="flow-card-video-mask"></div>
+              </div>
               <span>02</span>
               <div class="flow-icon flow-icon-orbit" aria-hidden="true">
                 <i></i>
@@ -162,6 +170,10 @@
               <small>Scene generation</small>
             </article>
             <article class="flow-card">
+              <div class="flow-card-video-shell" aria-hidden="true">
+                <video class="flow-card-video" data-scroll-video data-clip-window="3-10" src="assets/videos/brainstorm-teacher-card.mp4" poster="assets/videos/brainstorm-teacher-card-poster.jpg" muted loop playsinline preload="metadata"></video>
+                <div class="flow-card-video-mask"></div>
+              </div>
               <span>03</span>
               <div class="flow-icon flow-icon-frame" aria-hidden="true">
                 <i></i>
@@ -413,7 +425,7 @@
       <div class="container footer-inner">
         <div>
           <a class="brand footer-brand" href="#top" aria-label="MindMotion 首页 / Home">
-            <img class="brand-mark" src="assets/mindmotion-logo.svg" alt="">
+            <img class="brand-mark" src="assets/mindmotion-logo.png" alt="">
             <span class="brand-copy">
               <span class="brand-wordmark">MindMotion</span>
               <small>by KAIWU-AI</small>

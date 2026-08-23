@@ -155,6 +155,76 @@ test('a rejected muted autoplay attempt is handled without an unhandled rejectio
   assert.ok(runtime.classes.has('is-video-active'));
 });
 
+test('the three hero workflow cards each have their own parallel background video', async () => {
+  const [html, styles] = await Promise.all([text('index.html'), text('styles.css')]);
+  const start = html.indexOf('<div class="workflow-visual"');
+  const end = html.indexOf('</section>', start);
+  const workflow = html.slice(start, end);
+  const cards = [...workflow.matchAll(/<article class="flow-card[^"]*">([\s\S]*?)<\/article>/g)].map(
+    (match) => match[1],
+  );
+  const sources = [
+    'assets/videos/brainstorm-avatar-card.mp4',
+    'assets/videos/brainstorm-female-teacher-card.mp4',
+    'assets/videos/brainstorm-teacher-card.mp4',
+  ];
+  const posters = [
+    'assets/videos/brainstorm-avatar-card-poster.jpg',
+    'assets/videos/brainstorm-female-teacher-card-poster.jpg',
+    'assets/videos/brainstorm-teacher-card-poster.jpg',
+  ];
+
+  assert.ok(start >= 0 && end > start, 'hero workflow visual must exist');
+  assert.match(workflow, /class="workflow-visual"[^>]*data-scroll-video-section/);
+  assert.equal(cards.length, 3);
+  assert.equal((workflow.match(/<video[^>]*data-scroll-video/g) || []).length, 3);
+  assert.doesNotMatch(workflow, /workflow-video-shell|brainstorm-hero-reel/);
+
+  cards.forEach((card, index) => {
+    assert.match(card, /class="flow-card-video-shell" aria-hidden="true"/);
+    assert.match(card, /<video[^>]*class="flow-card-video"[^>]*data-scroll-video[^>]*>/);
+    assert.match(card, new RegExp(`src="${sources[index].replaceAll('.', '\\.')}`));
+    assert.match(card, new RegExp(`poster="${posters[index].replaceAll('.', '\\.')}`));
+    assert.match(card, /data-clip-window="3-10"/);
+    assert.match(card, /\bmuted\b/);
+    assert.match(card, /\bloop\b/);
+    assert.match(card, /\bplaysinline\b/);
+    assert.match(card, /preload="metadata"/);
+    assert.doesNotMatch(card, /\bcontrols\b/);
+    assert.match(card, /class="flow-card-video-mask"/);
+  });
+
+  assert.match(styles, /\.flow-card\s*\{[^}]*position:\s*relative[^}]*overflow:\s*hidden[^}]*isolation:\s*isolate/s);
+  assert.match(styles, /\.flow-card-video-shell\s*\{[^}]*position:\s*absolute[^}]*opacity:\s*0/s);
+  assert.match(styles, /\.workflow-visual\.is-video-active\s+\.flow-card-video-shell\s*\{[^}]*opacity:/s);
+  assert.match(styles, /\.flow-card-video\s*\{[^}]*width:\s*100%[^}]*height:\s*100%[^}]*object-fit:\s*cover/s);
+  assert.match(styles, /\.flow-card-video-mask\s*\{[^}]*background:/s);
+  assert.match(styles, /\.flow-card\s*>\s*:not\(\.flow-card-video-shell\)\s*\{[^}]*z-index:\s*2/s);
+  assert.match(styles, /\.flow-card\s*>\s*\.flow-icon\s*\{[^}]*position:\s*absolute[^}]*right:\s*[^;]+;[^}]*bottom:\s*[^;]+;[^}]*transform:\s*scale\(0\.5\)/s);
+  assert.match(styles, /\.flow-card\s*>\s*strong\s*\{[^}]*position:\s*absolute[^}]*left:\s*[^;]+;[^}]*bottom:\s*[^;]+;/s);
+  assert.match(styles, /\.flow-card\s*>\s*small\s*\{[^}]*position:\s*absolute[^}]*left:\s*[^;]+;[^}]*bottom:\s*[^;]+;/s);
+  assert.doesNotMatch(styles, /\.flow-card\s+\.flow-icon\s*\{[^}]*grid-column:/s);
+});
+
+test('the three optimized parallel card videos and posters are present', async () => {
+  const assets = [
+    'brainstorm-teacher-card.mp4',
+    'brainstorm-avatar-card.mp4',
+    'brainstorm-female-teacher-card.mp4',
+    'brainstorm-teacher-card-poster.jpg',
+    'brainstorm-avatar-card-poster.jpg',
+    'brainstorm-female-teacher-card-poster.jpg',
+  ];
+  const stats = await Promise.all(assets.map((asset) => stat(resolve(root, 'assets/videos', asset))));
+
+  stats.slice(0, 3).forEach((video) => {
+    assert.ok(video.size > 50_000, 'card background video must not be an empty placeholder');
+  });
+  stats.slice(3).forEach((poster) => {
+    assert.ok(poster.size > 5_000, 'card background poster must not be an empty placeholder');
+  });
+});
+
 test('the optimized video and poster assets are present', async () => {
   const [video, poster] = await Promise.all([
     stat(resolve(root, 'assets/videos/zhang-industrial-engineering-bg.mp4')),
