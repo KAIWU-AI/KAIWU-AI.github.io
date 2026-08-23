@@ -39,6 +39,7 @@
       }
     </script>
     <script src="script.js" defer></script>
+    <script type="module" src="platform-download.js"></script>
     <script src="starfield.js" defer></script>
     <script src="public/components/planetary-gear-kit.js" defer></script>
     <script src="public/components/universal-joint-kit.js" defer></script>
@@ -101,7 +102,7 @@
           <h1 id="hero-title">
             <span class="hero-product-name">MindMotion，</span>
             <span>让知识</span>
-            <span class="muted-title">成为生动的视频。</span>
+            <span class="muted-title">生动放映</span>
           </h1>
           <p class="hero-title-en">Turn knowledge into vivid educational videos.</p>
           <p class="hero-lead">
@@ -113,9 +114,14 @@
             diverse visual learning scenarios.
           </p>
           <div class="hero-actions">
-            <a class="button button-primary" href="https://github.com/KAIWU-AI">
-              在 GitHub 上关注
-              <span aria-hidden="true">↗</span>
+            <a
+              class="button button-primary platform-download is-disabled"
+              data-platform-download
+              data-download-url="https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.1/MindMotion_0.1.1_x64-setup.exe"
+              aria-disabled="true"
+            >
+              <span data-download-label>正在检测系统…</span>
+              <span data-download-icon aria-hidden="true">…</span>
             </a>
             <a class="button button-secondary" href="#mission">
               探索 MindMotion

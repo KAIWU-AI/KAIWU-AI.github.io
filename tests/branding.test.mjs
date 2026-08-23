@@ -44,6 +44,11 @@ test('public product surfaces are fully branded as MindMotion', async () => {
   assert.match(readme, /MindMotion/);
   assert.match(html, /<title>MindMotion by KAIWU-AI · AI 教育视频生成<\/title>/);
   assert.match(html, /class="hero-product-name">MindMotion，<\/span>/);
+  assert.match(
+    html,
+    /<h1 id="hero-title">\s*<span class="hero-product-name">MindMotion，<\/span>\s*<span>让知识<\/span>\s*<span class="muted-title">生动放映<\/span>\s*<\/h1>/,
+  );
+  assert.doesNotMatch(html, /成为生动的视频/);
   assert.match(html, /MindMotion \/ Product/);
 });
 
