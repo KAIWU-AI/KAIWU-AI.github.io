@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#100f16">
+    <meta name="color-scheme" content="dark">
+    <meta
+      name="description"
+      content="在线体验 MindMotion 从教学主题到视频脚本与场景规划的创作流程。完整生成、编辑和导出能力请下载桌面版。"
+    >
+    <meta name="robots" content="index, follow">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="MindMotion by KAIWU-AI">
+    <meta property="og:title" content="MindMotion Web 体验 · 从主题到教育视频">
+    <meta
+      property="og:description"
+      content="用一个主题体验 MindMotion 的教学内容理解、场景规划与成片预览流程。"
+    >
+    <meta property="og:url" content="https://kaiwu-ai.github.io/try/">
+    <link rel="canonical" href="https://kaiwu-ai.github.io/try/">
+    <link rel="icon" href="../assets/mindmotion-logo.png" type="image/png">
+    <link rel="stylesheet" href="styles.css">
+    <title>MindMotion Web 体验 · 从主题到教育视频</title>
+    <script type="module" src="app.js"></script>
+    <script type="module" src="../platform-download.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#experience">跳到体验区 / Skip to experience</a>
+
+    <header class="site-header">
+      <nav class="topbar shell" aria-label="体验页导航 / Experience navigation">
+        <a class="brand" href="../" aria-label="返回 MindMotion 官网">
+          <img src="../assets/mindmotion-logo.png" alt="" width="38" height="38">
+          <span>
+            <strong>MindMotion</strong>
+            <small>by KAIWU-AI</small>
+          </span>
+        </a>
+        <span class="page-badge">WEB EXPERIENCE</span>
+        <div class="topbar-actions">
+          <a href="../">产品官网</a>
+          <a class="topbar-download" href="#desktop">下载正式版</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="intro shell" aria-labelledby="page-title">
+        <div class="intro-copy">
+          <p class="eyebrow"><span aria-hidden="true">✦</span> INTERACTIVE DEMO · 无需登录</p>
+          <h1 id="page-title">先体验一次，<br><span>再把灵感做成视频。</span></h1>
+          <p>
+            输入一个教学主题，体验 MindMotion 如何理解内容、规划讲解并组织视觉场景。
+            整个过程在浏览器本地演示，不会上传或保存你的输入。
+          </p>
+        </div>
+        <aside class="demo-disclosure" aria-label="体验版能力说明">
+          <span class="disclosure-icon" aria-hidden="true">i</span>
+          <div>
+            <strong>这是交互式流程体验</strong>
+            <p>页面使用内置模板生成演示结果，不会创建或导出真实视频。完整能力需安装桌面版。</p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="experience shell" id="experience" aria-labelledby="experience-title">
+        <h2 class="sr-only" id="experience-title">MindMotion Web 创作体验</h2>
+
+        <ol class="step-rail" aria-label="体验流程">
+          <li class="is-active" data-step-item="1">
+            <span>01</span>
+            <div><strong>描述主题</strong><small>Describe</small></div>
+          </li>
+          <li data-step-item="2">
+            <span>02</span>
+            <div><strong>AI 编排</strong><small>Compose</small></div>
+          </li>
+          <li data-step-item="3">
+            <span>03</span>
+            <div><strong>查看方案</strong><small>Preview</small></div>
+          </li>
+        </ol>
+
+        <div class="workbench">
+          <div class="workbench-head">
+            <div>
+              <span class="status-dot" aria-hidden="true"></span>
+              <strong>MindMotion 演示工作台</strong>
+            </div>
+            <span class="local-label">LOCAL DEMO · 不上传</span>
+          </div>
+
+          <div class="input-view" data-view="input">
+            <div class="input-copy">
+              <p class="panel-kicker">01 / LEARNING TOPIC</p>
+              <h3>今天想讲清楚什么？</h3>
+              <p>可以直接输入，也可以选择一个示例主题开始体验。</p>
+            </div>
+
+            <form class="prompt-form" data-prompt-form>
+              <label for="topic">教学主题</label>
+              <div class="prompt-box">
+                <textarea
+                  id="topic"
+                  name="topic"
+                  rows="4"
+                  maxlength="80"
+                  placeholder="例如：用直观的方式解释大语言模型和扩散模型"
+                  required
+                  data-topic-input
+                ></textarea>
+                <div class="prompt-meta">
+                  <span><span data-character-count>0</span>/80</span>
+                  <span>不会保存输入</span>
+                </div>
+              </div>
+
+              <fieldset class="examples">
+                <legend>试试这些主题</legend>
+                <div class="example-list">
+                  <button type="button" data-example="用直观的方式解释大语言模型和扩散模型">
+                    大模型与扩散模型
+                  </button>
+                  <button type="button" data-example="为中学生演示太阳系八大行星如何运行">
+                    太阳系运行
+                  </button>
+                  <button type="button" data-example="用生活案例讲解牛顿第二定律">
+                    牛顿第二定律
+                  </button>
+                </div>
+              </fieldset>
+
+              <div class="form-actions">
+                <button class="start-button" type="submit" data-start-button>
+                  <span>开始体验</span><span aria-hidden="true">→</span>
+                </button>
+                <p><span aria-hidden="true">◌</span> 约 5 秒完成演示</p>
+              </div>
+            </form>
+          </div>
+
+          <div class="progress-view" data-view="progress" hidden>
+            <div class="progress-orbit" aria-hidden="true">
+              <span class="orbit-core">M</span>
+              <i></i><i></i><i></i>
+            </div>
+            <p class="panel-kicker">02 / COMPOSING</p>
+            <h3 data-progress-title>正在理解教学主题</h3>
+            <p class="progress-topic">“<span data-progress-topic></span>”</p>
+            <div
+              class="progress-track"
+              role="progressbar"
+              aria-label="演示生成进度"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+              data-progress-track
+            >
+              <span data-progress-bar></span>
+            </div>
+            <ol class="phase-list">
+              <li data-phase="understand"><span>01</span> 提炼教学目标</li>
+              <li data-phase="structure"><span>02</span> 组织讲解结构</li>
+              <li data-phase="visual"><span>03</span> 匹配视觉场景</li>
+              <li data-phase="compose"><span>04</span> 合成体验方案</li>
+            </ol>
+            <p class="sr-only" aria-live="polite" data-live-status></p>
+          </div>
+
+          <div class="result-view" data-view="result" hidden>
+            <div class="result-heading">
+              <div>
+                <p class="panel-kicker">03 / EXPERIENCE READY</p>
+                <h3 tabindex="-1">一节可视化课程的雏形</h3>
+              </div>
+              <span class="ready-badge"><i aria-hidden="true"></i> 演示方案已就绪</span>
+            </div>
+
+            <div class="result-grid">
+              <div class="preview-card">
+                <div class="preview-stage">
+                  <video
+                    data-preview-video
+                    muted
+                    loop
+                    playsinline
+                    preload="metadata"
+                    aria-label="MindMotion 演示素材预览"
+                  ></video>
+                  <div class="preview-overlay">
+                    <span>DEMO PREVIEW</span>
+                    <strong data-result-title></strong>
+                    <small>演示素材 · 非实时生成结果</small>
+                  </div>
+                </div>
+                <div class="preview-timeline" aria-hidden="true">
+                  <span class="is-filled"></span><span class="is-filled"></span><span></span>
+                </div>
+                <div class="preview-meta">
+                  <span>预计成片 01:45</span>
+                  <span>16:9 · 中文讲解</span>
+                </div>
+              </div>
+
+              <div class="plan-card">
+                <span class="plan-label">课程结构 / STORYBOARD</span>
+                <ol data-scene-list></ol>
+              </div>
+            </div>
+
+            <div class="result-actions">
+              <button type="button" class="secondary-button" data-restart-button>换一个主题</button>
+              <a class="primary-link" href="#desktop">用桌面版真正生成 <span aria-hidden="true">→</span></a>
+            </div>
+          </div>
+        </div>
+
+        <aside class="capability-panel">
+          <p class="panel-kicker">WHAT YOU WILL SEE</p>
+          <h3>这次体验会展示</h3>
+          <ul>
+            <li><span aria-hidden="true">01</span><div><strong>教学目标提炼</strong><small>从主题中识别受众与知识重点</small></div></li>
+            <li><span aria-hidden="true">02</span><div><strong>分镜结构规划</strong><small>把抽象内容拆成可讲解的段落</small></div></li>
+            <li><span aria-hidden="true">03</span><div><strong>视觉场景建议</strong><small>匹配 3D、图解或数字人表达</small></div></li>
+          </ul>
+          <div class="desktop-unlocks">
+            <span>桌面版完整能力</span>
+            <p>真实生成 · 项目编辑 · 本地素材 · 视频导出</p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="desktop-cta shell" id="desktop" aria-labelledby="desktop-title">
+        <div>
+          <p class="eyebrow"><span aria-hidden="true">✦</span> FULL EXPERIENCE</p>
+          <h2 id="desktop-title">准备把方案变成真正的视频？</h2>
+          <p>下载 MindMotion 桌面版，获得真实生成、项目编辑、本地素材接入和视频导出能力。</p>
+        </div>
+        <a
+          class="download-button is-disabled"
+          data-platform-download
+          data-windows-download-url="https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.2/MindMotion_0.1.2_x64-setup.exe"
+          data-macos-download-url="https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.2/MindMotion_0.1.2_aarch64.dmg"
+          aria-disabled="true"
+        >
+          <span data-download-label>正在检测系统…</span>
+          <span data-download-icon aria-hidden="true">…</span>
+        </a>
+      </section>
+    </main>
+
+    <footer class="site-footer shell">
+      <span>MindMotion by KAIWU-AI</span>
+      <p>Web 体验仅用于产品流程演示，不代表实际生成结果。</p>
+      <a href="https://github.com/KAIWU-AI">GitHub ↗</a>
+    </footer>
+  </body>
+</html>

@@ -211,6 +211,11 @@ a {
   color: var(--text);
 }
 
+.nav-experience {
+  color: var(--accent-text);
+  font-weight: 720;
+}
+
 .nav-github {
   display: inline-flex;
   align-items: center;
@@ -317,6 +322,13 @@ a {
   margin-top: 2.2rem;
 }
 
+.hero-demo-note {
+  max-width: 38rem;
+  margin: 0.9rem 0 0;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+
 .button {
   display: inline-flex;
   min-height: 3rem;
@@ -355,7 +367,8 @@ a {
 
 .platform-download.is-disabled:hover {
   transform: none;
-  background: var(--accent-action);
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .button-secondary {
