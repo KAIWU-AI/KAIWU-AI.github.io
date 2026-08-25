@@ -28,6 +28,12 @@ Then open <http://localhost:8000>.
 
 Open `/try/` to explore MindMotion's topic analysis, lesson structuring, and visual scene planning flow. The experience runs locally in the browser with preset demo templates: it requires no sign-in, uploads or persistent storage, and does not generate or export a real video. Full creation capabilities are available in the desktop app.
 
+## 教师与团队数字人 / Digital presenters and builders
+
+首页工作流使用张老师、蔡老师和校友导师刘师兄的数字人形象，按“张老师 → 蔡老师 → 刘师兄”的顺序展示。核心能力之后的团队画廊展示 11 位开发同学的数字人形象。网页使用从原始人物设定图裁出的轻量 JPEG：首屏教师图每张小于 100 KB，团队图延迟加载，不直接分发多视角原始大图。
+
+The homepage workflow presents digital representations of Teacher Zhang, Teacher Cai, and alumni mentor Liu in that order. A gallery after the capabilities section introduces 11 builder avatars. The website serves lightweight crops rather than the original multi-view source sheets, with lazy loading for the team gallery.
+
 ## 3D 实验场
 
 首页实验场紧接首屏，三个独立实时 Canvas 采用流式响应布局：宽屏三列、中屏自动换行、手机单列。背景星场先由 CSS 即时呈现，再由首帧 Canvas 补充高密度动态星点。实验场包含：
