@@ -192,6 +192,7 @@ test('hero workflow presents Zhang, Cai, and alumni mentor Liu in the requested 
   assert.match(styles, /\.workflow-visual\.is-video-active\s+\.flow-card-video-shell\s*\{[^}]*opacity:/s);
   assert.match(styles, /\.flow-card-video\s*\{[^}]*width:\s*100%[^}]*height:\s*100%[^}]*object-fit:\s*cover/s);
   assert.match(styles, /\.flow-card-person\s*\{[^}]*animation:\s*teacher-card-breathe/s);
+  assert.match(styles, /\.flow-card:nth-child\(3\) \.flow-card-person\s*\{[^}]*object-position:\s*center top/s);
   assert.match(styles, /\.flow-card-video-mask\s*\{[^}]*background:/s);
   assert.match(styles, /\.flow-card\s*>\s*:not\(\.flow-card-video-shell\)\s*\{[^}]*z-index:\s*2/s);
   assert.match(styles, /\.flow-card\s*>\s*\.flow-icon\s*\{[^}]*position:\s*absolute[^}]*right:\s*[^;]+;[^}]*bottom:\s*[^;]+;[^}]*transform:\s*scale\(0\.5\)/s);
@@ -200,22 +201,27 @@ test('hero workflow presents Zhang, Cai, and alumni mentor Liu in the requested 
   assert.doesNotMatch(styles, /\.flow-card\s+\.flow-icon\s*\{[^}]*grid-column:/s);
 });
 
-test('teacher portraits and the complete developer avatar gallery are optimized', async () => {
-  const html = await text('index.html');
+test('teacher portraits and the combined twelve-person team stage are optimized', async () => {
+  const [html, styles] = await Promise.all([text('index.html'), text('styles.css')]);
   const teacherAssets = [
     'zhang-teacher.jpg',
     'cai-teacher.jpg',
     'liu-alumni-mentor.jpg',
   ];
-  const teamAssets = Array.from({ length: 11 }, (_, index) =>
-    `developer-avatar-${String(index + 1).padStart(2, '0')}.jpg`
-  );
+  const teamAssets = [
+    ...[1, 2, 3, 4, 5, 6, 8, 9, 10, 11].map(
+      (index) => `developer-avatar-${String(index).padStart(2, '0')}.jpg`,
+    ),
+    'developer-avatar-ruigao.jpg',
+    'developer-avatar-yan-yueming.jpg',
+  ];
   const teacherStats = await Promise.all(
     teacherAssets.map((asset) => stat(resolve(root, 'assets/teachers', asset))),
   );
   const teamStats = await Promise.all(
     teamAssets.map((asset) => stat(resolve(root, 'assets/team', asset))),
   );
+  const teamReference = await stat(resolve(root, 'assets/team/team-reference-photo.jpg'));
 
   teacherStats.forEach((asset) => {
     assert.ok(asset.size > 10_000, 'teacher portrait must not be an empty placeholder');
@@ -225,14 +231,23 @@ test('teacher portraits and the complete developer avatar gallery are optimized'
     assert.ok(asset.size > 10_000, 'developer avatar must not be an empty placeholder');
     assert.ok(asset.size < 100_000, 'developer avatar must remain optimized');
   });
+  assert.ok(teamReference.size > 100_000, 'team reference photo must not be an empty placeholder');
+  assert.ok(teamReference.size < 500_000, 'team reference photo must remain web optimized');
 
   const teamStart = html.indexOf('<section class="team-section');
   const teamEnd = html.indexOf('</section>', teamStart);
   const team = html.slice(teamStart, teamEnd);
   assert.ok(teamStart >= 0 && teamEnd > teamStart, 'developer avatar section must exist');
-  assert.equal((team.match(/<figure class="team-member">/g) || []).length, 11);
-  assert.equal((team.match(/loading="lazy"/g) || []).length, 11);
+  assert.match(team, /class="team-ensemble"/);
+  assert.match(team, /class="team-reference"/);
+  assert.match(team, /team-reference-photo\.jpg/);
+  assert.equal((team.match(/<figure class="team-member(?: team-member-named)?">/g) || []).length, 12);
+  assert.equal((team.match(/loading="lazy"/g) || []).length, 13);
+  assert.doesNotMatch(team, /developer-avatar-07\.jpg/);
+  assert.match(team, /<strong>瑞高<\/strong>/);
+  assert.match(team, /<strong>颜月明<\/strong>/);
   teamAssets.forEach((asset) => assert.match(team, new RegExp(asset.replaceAll('.', '\\.'))));
+  assert.match(styles, /\.team-lineup\s*\{[^}]*grid-template-columns:\s*repeat\(12,/s);
 });
 
 test('the optimized video and poster assets are present', async () => {

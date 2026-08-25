@@ -30,9 +30,9 @@ Open `/try/` to explore MindMotion's topic analysis, lesson structuring, and vis
 
 ## 教师与团队数字人 / Digital presenters and builders
 
-首页工作流使用张老师、蔡老师和校友导师刘师兄的数字人形象，按“张老师 → 蔡老师 → 刘师兄”的顺序展示。核心能力之后的团队画廊展示 11 位开发同学的数字人形象。网页使用从原始人物设定图裁出的轻量 JPEG：首屏教师图每张小于 100 KB，团队图延迟加载，不直接分发多视角原始大图。
+首页工作流使用张老师、蔡老师和校友导师刘师兄的数字人形象，按“张老师 → 蔡老师 → 刘师兄”的顺序展示。核心能力之后以真实团队合影为视觉依据，将 12 位开发同学的数字人形象组合在同一个合影舞台中，并使用指定素材呈现瑞高与颜月明。网页使用从原始人物设定图裁出的轻量 JPEG：首屏教师图每张小于 100 KB，团队图延迟加载，不直接分发多视角原始大图。
 
-The homepage workflow presents digital representations of Teacher Zhang, Teacher Cai, and alumni mentor Liu in that order. A gallery after the capabilities section introduces 11 builder avatars. The website serves lightweight crops rather than the original multi-view source sheets, with lazy loading for the team gallery.
+The homepage workflow presents digital representations of Teacher Zhang, Teacher Cai, and alumni mentor Liu in that order. After the capabilities section, a shared portrait stage brings 12 builder avatars together, guided by the real team photo and using the selected portraits for Ruigao and Yan Yueming. The website serves lightweight crops rather than the original multi-view source sheets, with lazy loading for team imagery.
 
 ## 3D 实验场
 
