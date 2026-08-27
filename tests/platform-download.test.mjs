@@ -6,9 +6,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const windowsDownloadUrl =
-  'https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.2/MindMotion_0.1.2_x64-setup.exe';
+  'https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.5/MindMotion_0.1.5_x64-setup.exe';
 const macosDownloadUrl =
-  'https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.2/MindMotion_0.1.2_aarch64.dmg';
+  'https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.5/MindMotion_0.1.5_aarch64.dmg';
 
 async function loadModule() {
   return import(`${pathToFileURL(resolve(root, 'platform-download.js')).href}?test=${Date.now()}`);
@@ -48,7 +48,7 @@ function fakeButton() {
   };
 }
 
-test('hero primary action is wired to both verified 0.1.2 desktop release assets', async () => {
+test('hero primary action is wired to both verified 0.1.5 desktop release assets', async () => {
   const html = await readFile(resolve(root, 'index.html'), 'utf8');
   assert.match(html, /<script type="module" src="platform-download\.js"><\/script>/);
   assert.match(html, /data-platform-download/);
@@ -168,9 +168,11 @@ test('Windows visitors receive a direct download link', async () => {
   configurePlatformDownload(button, { userAgentData: { platform: 'Windows' } });
 
   assert.equal(button.getAttribute('href'), windowsDownloadUrl);
-  assert.equal(button.getAttribute('download'), 'MindMotion_0.1.2_x64-setup.exe');
+  assert.equal(button.getAttribute('download'), 'MindMotion_0.1.5_x64-setup.exe');
+  assert.equal(button.getAttribute('aria-label'), '下载 MindMotion 0.1.5 Windows x64 安装包');
+  assert.equal(button.getAttribute('title'), '下载 MindMotion 0.1.5 Windows x64 安装包');
   assert.equal(button.getAttribute('aria-disabled'), null);
-  assert.equal(button.label.textContent, '下载 Windows 版');
+  assert.equal(button.label.textContent, '下载 Windows 版 · v0.1.5');
   assert.equal(button.icon.textContent, '↓');
   assert.equal(button.classList.contains('is-disabled'), false);
   assert.equal(button.click().prevented, false);
@@ -182,9 +184,11 @@ test('macOS visitors receive the Apple Silicon disk image', async () => {
   configurePlatformDownload(button, { platform: 'MacIntel' });
 
   assert.equal(button.getAttribute('href'), macosDownloadUrl);
-  assert.equal(button.getAttribute('download'), 'MindMotion_0.1.2_aarch64.dmg');
+  assert.equal(button.getAttribute('download'), 'MindMotion_0.1.5_aarch64.dmg');
+  assert.equal(button.getAttribute('aria-label'), '下载 MindMotion 0.1.5 macOS Apple 芯片安装包');
+  assert.equal(button.getAttribute('title'), '下载 MindMotion 0.1.5 macOS Apple 芯片安装包');
   assert.equal(button.getAttribute('aria-disabled'), null);
-  assert.equal(button.label.textContent, '下载 macOS 版');
+  assert.equal(button.label.textContent, '下载 macOS（Apple 芯片）· v0.1.5');
   assert.equal(button.icon.textContent, '↓');
   assert.equal(button.classList.contains('is-disabled'), false);
   assert.equal(button.click().prevented, false);
@@ -210,7 +214,7 @@ test('reconfiguration safely switches between Windows, macOS, disabled, and Wind
 
   configurePlatformDownload(button, { platform: 'MacIntel' });
   assert.equal(button.getAttribute('href'), macosDownloadUrl);
-  assert.equal(button.getAttribute('download'), 'MindMotion_0.1.2_aarch64.dmg');
+  assert.equal(button.getAttribute('download'), 'MindMotion_0.1.5_aarch64.dmg');
   assert.equal(button.getAttribute('aria-disabled'), null);
   assert.equal(button.click().prevented, false);
 
