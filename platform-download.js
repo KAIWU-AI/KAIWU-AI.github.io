@@ -1,7 +1,7 @@
 export const WINDOWS_DOWNLOAD_URL =
-  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.2/MindMotion_0.1.2_x64-setup.exe";
+  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.5/MindMotion_0.1.5_x64-setup.exe";
 export const MACOS_DOWNLOAD_URL =
-  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.2/MindMotion_0.1.2_aarch64.dmg";
+  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.5/MindMotion_0.1.5_aarch64.dmg";
 
 export function detectDesktopPlatform(navigatorLike = {}) {
   const userAgent = String(navigatorLike.userAgent || "").trim().toLowerCase();
@@ -121,10 +121,10 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
   if (platform === "windows") {
     enableDownload({
       url: windowsDownloadUrl,
-      filename: "MindMotion_0.1.2_x64-setup.exe",
-      ariaLabel: "下载 MindMotion 0.1.2 Windows x64 安装包",
-      title: "下载 MindMotion 0.1.2 Windows x64 安装包",
-      labelText: "下载 Windows 版",
+      filename: "MindMotion_0.1.5_x64-setup.exe",
+      ariaLabel: "下载 MindMotion 0.1.5 Windows x64 安装包",
+      title: "下载 MindMotion 0.1.5 Windows x64 安装包",
+      labelText: "下载 Windows 版 · v0.1.5",
     });
     return platform;
   }
@@ -132,10 +132,10 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
   if (platform === "macos") {
     enableDownload({
       url: macosDownloadUrl,
-      filename: "MindMotion_0.1.2_aarch64.dmg",
-      ariaLabel: "下载 MindMotion 0.1.2 macOS Apple 芯片安装包",
-      title: "下载 MindMotion 0.1.2 macOS Apple 芯片安装包",
-      labelText: "下载 macOS 版",
+      filename: "MindMotion_0.1.5_aarch64.dmg",
+      ariaLabel: "下载 MindMotion 0.1.5 macOS Apple 芯片安装包",
+      title: "下载 MindMotion 0.1.5 macOS Apple 芯片安装包",
+      labelText: "下载 macOS（Apple 芯片）· v0.1.5",
     });
     return platform;
   }
