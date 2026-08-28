@@ -22,6 +22,18 @@ python -m http.server 8000
 
 Then open <http://localhost:8000>.
 
+## Web 体验 / Web experience
+
+访问 `/try/` 可体验 MindMotion 从教学主题理解、讲解结构规划到视觉场景建议的创作流程。体验页完全在浏览器本地运行，使用内置模板生成演示方案，不登录、不上传、不保存用户输入，也不会生成或导出真实视频。真实生成、项目编辑、本地素材接入和视频导出能力需下载安装桌面版。
+
+Open `/try/` to explore MindMotion's topic analysis, lesson structuring, and visual scene planning flow. The experience runs locally in the browser with preset demo templates: it requires no sign-in, uploads or persistent storage, and does not generate or export a real video. Full creation capabilities are available in the desktop app.
+
+## 教师与团队数字人 / Digital presenters and builders
+
+首页工作流使用张老师、蔡老师和校友导师刘师兄的数字人形象，按“张老师 → 蔡老师 → 刘师兄”的顺序展示。核心能力之后以真实团队合影为视觉依据，将 12 位开发同学的数字人形象组合在同一个合影舞台中，并使用指定素材呈现瑞高与颜月明。网页使用从原始人物设定图裁出的轻量 JPEG：首屏教师图每张小于 100 KB，团队图延迟加载，不直接分发多视角原始大图。
+
+The homepage workflow presents digital representations of Teacher Zhang, Teacher Cai, and alumni mentor Liu in that order. After the capabilities section, a shared portrait stage brings 12 builder avatars together, guided by the real team photo and using the selected portraits for Ruigao and Yan Yueming. The website serves lightweight crops rather than the original multi-view source sheets, with lazy loading for team imagery.
+
 ## 3D 实验场
 
 首页实验场紧接首屏，三个独立实时 Canvas 采用流式响应布局：宽屏三列、中屏自动换行、手机单列。背景星场先由 CSS 即时呈现，再由首帧 Canvas 补充高密度动态星点。实验场包含：

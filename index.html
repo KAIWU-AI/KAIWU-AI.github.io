@@ -78,6 +78,7 @@
         </button>
 
         <div class="nav-links" id="nav-links">
+          <a class="nav-experience" href="try/">Web 体验 / Try</a>
           <a href="#mission">MindMotion / Product</a>
           <a href="#directions">能力 / Capabilities</a>
           <a href="#lab">3D 实验场 / 3D Lab</a>
@@ -114,8 +115,12 @@
             diverse visual learning scenarios.
           </p>
           <div class="hero-actions">
+            <a class="button button-primary" href="try/">
+              立即体验 Web 版
+              <span aria-hidden="true">→</span>
+            </a>
             <a
-              class="button button-primary platform-download is-disabled"
+              class="button button-secondary platform-download is-disabled"
               data-platform-download
               data-windows-download-url="https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.5/MindMotion_0.1.5_x64-setup.exe"
               data-macos-download-url="https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.5/MindMotion_0.1.5_aarch64.dmg"
@@ -124,14 +129,13 @@
               <span data-download-label>正在检测系统…</span>
               <span data-download-icon aria-hidden="true">…</span>
             </a>
-            <a class="button button-secondary" href="#mission">
-              探索 MindMotion
-              <span aria-hidden="true">↓</span>
-            </a>
           </div>
+          <p class="hero-demo-note">
+            Web 端提供交互式流程体验；真实生成、编辑与导出能力需安装桌面版。
+          </p>
         </div>
 
-        <div class="workflow-visual" data-scroll-video-section aria-label="MindMotion 教育视频生成工作流示意图">
+        <div class="workflow-visual is-video-active" aria-label="张老师、蔡老师与校友导师刘师兄的数字人讲解展示">
           <div class="visual-head">
             <span class="visual-label">MINDMOTION / EDUCATION VIDEO WORKFLOW</span>
             <span class="visual-live"><i aria-hidden="true"></i> AI</span>
@@ -148,39 +152,39 @@
           <div class="flow-grid">
             <article class="flow-card">
               <div class="flow-card-video-shell" aria-hidden="true">
-                <video class="flow-card-video" data-scroll-video data-clip-window="3-10" src="assets/videos/brainstorm-avatar-card.mp4" poster="assets/videos/brainstorm-avatar-card-poster.jpg" muted loop playsinline preload="metadata"></video>
+                <img class="flow-card-video flow-card-person" src="assets/teachers/zhang-teacher.jpg" alt="" width="534" height="900" decoding="async">
                 <div class="flow-card-video-mask"></div>
               </div>
               <span>01</span>
               <div class="flow-icon flow-icon-intent" aria-hidden="true">
                 <i></i><i></i><i></i><i></i><i></i>
               </div>
-              <strong>教学主题</strong>
-              <small>Learning topic</small>
+              <strong>张老师讲解</strong>
+              <small>Faculty lecture</small>
             </article>
             <article class="flow-card flow-card-accent">
               <div class="flow-card-video-shell" aria-hidden="true">
-                <video class="flow-card-video" data-scroll-video data-clip-window="3-10" src="assets/videos/brainstorm-female-teacher-card.mp4" poster="assets/videos/brainstorm-female-teacher-card-poster.jpg" muted loop playsinline preload="metadata"></video>
+                <img class="flow-card-video flow-card-person" src="assets/teachers/cai-teacher.jpg" alt="" width="534" height="900" decoding="async">
                 <div class="flow-card-video-mask"></div>
               </div>
               <span>02</span>
               <div class="flow-icon flow-icon-orbit" aria-hidden="true">
                 <i></i>
               </div>
-              <strong>场景生成</strong>
-              <small>Scene generation</small>
+              <strong>蔡老师讲解</strong>
+              <small>Faculty lecture</small>
             </article>
             <article class="flow-card">
               <div class="flow-card-video-shell" aria-hidden="true">
-                <video class="flow-card-video" data-scroll-video data-clip-window="3-10" src="assets/videos/brainstorm-teacher-card.mp4" poster="assets/videos/brainstorm-teacher-card-poster.jpg" muted loop playsinline preload="metadata"></video>
+                <img class="flow-card-video flow-card-person" src="assets/teachers/liu-alumni-mentor.jpg" alt="" width="400" height="900" decoding="async">
                 <div class="flow-card-video-mask"></div>
               </div>
               <span>03</span>
               <div class="flow-icon flow-icon-frame" aria-hidden="true">
                 <i></i>
               </div>
-              <strong>教育视频</strong>
-              <small>Learning video</small>
+              <strong>校友导师刘师兄</strong>
+              <small>Alumni mentor</small>
             </article>
           </div>
           <p class="visual-note">
@@ -368,12 +372,86 @@
         </div>
       </section>
 
+      <section class="team-section section container" id="team" aria-labelledby="team-title">
+        <div class="section-heading team-heading">
+          <div class="section-kicker">
+            <span>04</span>
+            <p>创作团队 / The people behind MindMotion</p>
+          </div>
+          <h2 id="team-title">开发同学的数字人形象。<br><span>Meet the builders behind MindMotion.</span></h2>
+        </div>
+        <p class="team-intro">
+          从产品、工程到视觉创作，团队同学也以数字人形象参与 MindMotion 的表达探索。
+          <span lang="en">Our product, engineering, and creative teammates step into the same digital world we are building.</span>
+        </p>
+        <div class="team-ensemble" aria-label="参考真实合影构建的 MindMotion 十二人数字团队合影">
+          <figure class="team-reference">
+            <img src="assets/team/team-reference-photo.jpg" alt="MindMotion 团队在清华大学工业工程系前的合影" width="1200" height="900" loading="lazy" decoding="async">
+            <figcaption>
+              <span>REAL TEAM / DIGITAL TOGETHER</span>
+              <strong>同一支团队，同一个数字世界。</strong>
+              <small>From our real team photo to one shared digital portrait.</small>
+            </figcaption>
+          </figure>
+          <div class="team-lineup" aria-label="MindMotion 十二位团队同学数字人合影">
+            <figure class="team-member">
+              <div class="team-portrait"><img src="assets/team/developer-avatar-01.jpg" alt="MindMotion 团队同学数字人 01" width="300" height="527" loading="lazy" decoding="async"></div>
+              <figcaption><span>01</span><strong>团队同学</strong></figcaption>
+            </figure>
+            <figure class="team-member">
+              <div class="team-portrait"><img src="assets/team/developer-avatar-02.jpg" alt="MindMotion 团队同学数字人 02" width="300" height="527" loading="lazy" decoding="async"></div>
+              <figcaption><span>02</span><strong>团队同学</strong></figcaption>
+            </figure>
+            <figure class="team-member">
+              <div class="team-portrait"><img src="assets/team/developer-avatar-03.jpg" alt="MindMotion 团队同学数字人 03" width="283" height="470" loading="lazy" decoding="async"></div>
+              <figcaption><span>03</span><strong>团队同学</strong></figcaption>
+            </figure>
+            <figure class="team-member">
+              <div class="team-portrait"><img src="assets/team/developer-avatar-04.jpg" alt="MindMotion 团队同学数字人 04" width="273" height="437" loading="lazy" decoding="async"></div>
+              <figcaption><span>04</span><strong>团队同学</strong></figcaption>
+            </figure>
+            <figure class="team-member">
+              <div class="team-portrait"><img src="assets/team/developer-avatar-05.jpg" alt="MindMotion 团队同学数字人 05" width="300" height="527" loading="lazy" decoding="async"></div>
+              <figcaption><span>05</span><strong>团队同学</strong></figcaption>
+            </figure>
+            <figure class="team-member">
+              <div class="team-portrait"><img src="assets/team/developer-avatar-06.jpg" alt="MindMotion 团队同学数字人 06" width="300" height="527" loading="lazy" decoding="async"></div>
+              <figcaption><span>06</span><strong>团队同学</strong></figcaption>
+            </figure>
+            <figure class="team-member">
+              <div class="team-portrait"><img src="assets/team/developer-avatar-08.jpg" alt="MindMotion 团队同学数字人 07" width="300" height="527" loading="lazy" decoding="async"></div>
+              <figcaption><span>07</span><strong>团队同学</strong></figcaption>
+            </figure>
+            <figure class="team-member">
+              <div class="team-portrait"><img src="assets/team/developer-avatar-09.jpg" alt="MindMotion 团队同学数字人 08" width="300" height="527" loading="lazy" decoding="async"></div>
+              <figcaption><span>08</span><strong>团队同学</strong></figcaption>
+            </figure>
+            <figure class="team-member">
+              <div class="team-portrait"><img src="assets/team/developer-avatar-10.jpg" alt="MindMotion 团队同学数字人 09" width="283" height="470" loading="lazy" decoding="async"></div>
+              <figcaption><span>09</span><strong>团队同学</strong></figcaption>
+            </figure>
+            <figure class="team-member">
+              <div class="team-portrait"><img src="assets/team/developer-avatar-11.jpg" alt="MindMotion 团队同学数字人 10" width="300" height="527" loading="lazy" decoding="async"></div>
+              <figcaption><span>10</span><strong>团队同学</strong></figcaption>
+            </figure>
+            <figure class="team-member team-member-named">
+              <div class="team-portrait"><img src="assets/team/developer-avatar-ruigao.jpg" alt="瑞高的数字人形象" width="400" height="900" loading="lazy" decoding="async"></div>
+              <figcaption><span>11</span><strong>瑞高</strong></figcaption>
+            </figure>
+            <figure class="team-member team-member-named">
+              <div class="team-portrait"><img src="assets/team/developer-avatar-yan-yueming.jpg" alt="颜月明的数字人形象" width="400" height="900" loading="lazy" decoding="async"></div>
+              <figcaption><span>12</span><strong>颜月明</strong></figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
       <section class="projects section container" id="projects" aria-labelledby="projects-title">
         <div class="project-panel">
           <div class="project-grid" aria-hidden="true"></div>
           <div class="project-content">
             <div class="section-kicker project-kicker">
-              <span>04</span>
+              <span>05</span>
               <p>开放进展 / Open progress</p>
             </div>
             <p class="coming-label"><span aria-hidden="true"></span> IN PREPARATION</p>
