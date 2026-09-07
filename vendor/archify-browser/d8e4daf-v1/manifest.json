@@ -1,0 +1,59 @@
+{
+  "name": "KaiwuArchify",
+  "adapterVersion": "d8e4daf-v1",
+  "upstream": {
+    "repository": "https://github.com/tt-a1i/archify",
+    "revision": "d8e4daf2610d512821365f41b139d874b29efe81",
+    "license": "MIT",
+    "files": {
+      "LICENSE": "b799ab081703e7821ae5096d2c1abdf14bbdc75e8ea1c4045998c36ed6db9706",
+      "assets/template.html": "35b2210b120c56a6c58d953ffe0cf815c2e67d0a5ff3e8b9518c45b737dd3fc3",
+      "renderers/architecture/render-architecture.mjs": "f57077cb9fa64a8412ab0af705cb31e2e7a920114b31852882c04a76840365dc",
+      "renderers/architecture/grid.mjs": "f6de99c32436feed3378b0ddef516bb4732ff27a89c543b50635d4d14a15a55a",
+      "renderers/shared/utils.mjs": "20124265300eb286db184a053561005cc32b6128dc1bc1b3f9520ffa8d43a241",
+      "renderers/shared/cli.mjs": "2a6b8fa11234451627a70bca71985d80362a4c52401a90a21840d6e2ae3012d9",
+      "renderers/shared/layout-report.mjs": "44c2f74a20e483dd37dae6791ede39284ce3bac1a2a13872d2912999e8504df5",
+      "renderers/shared/diagnostics.mjs": "855fea15daf2beb5be7fad0d54b72a63a4af8595f227facf845ba1852b3b365a",
+      "renderers/shared/legend.mjs": "4c8b37f10fb5c783a28bff6aa35bc3966155213ee32f64a8252eab5b9e64a747",
+      "renderers/shared/text-fit.mjs": "35b6ef2c64d88c1ea4e5aab2af7c4e8a2c2e1be62db71263787d39a9797e7dea",
+      "renderers/shared/brand-marks.mjs": "4557b7f3eec25a3dba66a0f5da1c5dca6ec607e2a68e9be51cd697cefe9e6425",
+      "renderers/shared/desktop-readability.mjs": "b36203a11df348706e541f309266a0f9b914dac6a7eb8ba804e3abe8f8d6c710",
+      "renderers/shared/i18n.mjs": "da0320ac6c002f421c516cb4921e9b806a4ba5b3e9a4f6cbcdef0b16e2917d47",
+      "renderers/shared/geometry.mjs": "161785af32241fc96df051c9be4f2bb9c3b897418d708f4a051b63f1c44952cf",
+      "renderers/shared/validator.mjs": "7460d7fcbcdf710649256c5e96142ae26d807a655d3296ee8caf7f5e158622cc",
+      "renderers/shared/generated-validators.mjs": "b32d852053a2159477393c38df55f4759633bd3d36d829bd307b9389611e06b8",
+      "renderers/shared/engineering-profiles.mjs": "7e99f9d5423f66cc9ab6224da56dc2d5aa6c6faec29178034794e9db6b5b2889"
+    }
+  },
+  "build": {
+    "esbuild": "0.25.12",
+    "target": "es2022",
+    "format": "iife"
+  },
+  "adapterSources": {
+    "adapter.mjs": "e5fff7713610914674a407bf286caf3bfc80c11354dc30b45a00f838aee630f3",
+    "build.mjs": "60dfb151f7d7bb07a958ef66f1155bb38d47272b51da47ad9c2c56d8089a10c9",
+    "bridge-start.js": "dd946656ebe4702325cf6197f65ba8120f6ac5209ca61f4e8d5fa523da7604f6",
+    "bridge-end.js": "845566f2ea73890127361eae2e72e92ab3d803110da745b3cbc0c78602dfea17",
+    "package.json": "4846c7c8c71ba10c3c7cf2912f24e37df85b305fb2eb0bab8cdb1f3db0ef0651",
+    "package-lock.json": "638ee07fda5055c53c813908234af60a5c3ce19c2931d3d35e63936f6322e867",
+    "upstream-lock.json": "0d62aac11a38d22795e8d94c537cf632b4cad1f5bb2aaa311586d780972835d5"
+  },
+  "files": {
+    "archify-browser.js": {
+      "bytes": 1113603,
+      "sha256": "8e4a91c15b02f4f3d3396722c5e7bcc9f94b52faaa46700e45cd582b9db13e15",
+      "sha384": "0b25bb581894fced321bb9a1dc859346bda9e12720f9a76b6875de6d06f3b5f3b172492a368d9c4ad8837494a4f83a02",
+      "integrity": "sha384-CyW7WBiU/O0yG7mh3IWTRr2p4Scg+adraHXebQbztfOxckkqNo2cStiDdJSk+DoC"
+    },
+    "LICENSE": {
+      "sha256": "b799ab081703e7821ae5096d2c1abdf14bbdc75e8ea1c4045998c36ed6db9706"
+    }
+  },
+  "childScriptHashes": [
+    "'sha256-3ZRmVuvkcCMlz2GX9luoEg9qxSCcph9OjV+lI9p2BPY='",
+    "'sha256-8O6gMaaWiYviLt1rprrZYvCI71bDStt/E+COCnncWKU='",
+    "'sha256-28uO216zd6WxPG5BnZfRMEMSVn2x/p7+fFBeYFeXSBM='",
+    "'sha256-hFVm8upziQEnNh6uLnLpKrPYAxENp0Wzy8DHhgLf6hc='"
+  ]
+}

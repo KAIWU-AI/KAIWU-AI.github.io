@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Archify — synthetic browser example</title>
+  <style>
+    :root { color-scheme: light dark; font: 16px/1.5 system-ui, sans-serif; }
+    body { margin: 0; } header { padding: 1rem 1.5rem; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+    h1 { font-size: 1.1rem; margin: 0; } button { font: inherit; padding: .35rem .75rem; cursor: pointer; }
+    iframe { display: block; border: 0; width: 100%; height: calc(100dvh - 8rem); min-height: 480px; }
+    #status { margin: 0; } a { color: inherit; }
+  </style>
+  <script src="d8e4daf-v1/archify-browser.js" integrity="sha384-CyW7WBiU/O0yG7mh3IWTRr2p4Scg+adraHXebQbztfOxckkqNo2cStiDdJSk+DoC" crossorigin="anonymous"></script>
+</head>
+<body>
+  <header>
+    <h1>Synthetic browser example</h1>
+    <button type="button" id="light">Light</button>
+    <button type="button" id="dark">Dark</button>
+    <a href="../../docs/archify-browser.html">API and provenance</a>
+    <p id="status" role="status">Loading local JSON…</p>
+  </header>
+  <iframe title="Synthetic client and service architecture" sandbox="allow-scripts allow-downloads" referrerpolicy="no-referrer"></iframe>
+  <script type="application/json" id="architecture-data">
+    {
+      "schema_version": 1,
+      "diagram_type": "architecture",
+      "meta": {
+        "title": "Synthetic request path",
+        "subtitle": "Generic sample data rendered in this browser; no backend request.",
+        "animation": "trace",
+        "quality_profile": "standard",
+        "views": [
+          { "id": "request-path", "label": "Request path", "focus": ["client", "service"], "note": "A synthetic client sends a request to a synthetic service." }
+        ]
+      },
+      "components": [
+        { "id": "client", "type": "frontend", "label": "Client", "pos": [50, 100], "size": [120, 60] },
+        { "id": "service", "type": "backend", "label": "Service", "pos": [350, 100], "size": [120, 60] }
+      ],
+      "connections": [{ "id": "request", "from": "client", "to": "service", "label": "Request" }]
+    }
+  </script>
+  <script>
+    'use strict';
+    const frame = document.querySelector('iframe');
+    const status = document.querySelector('#status');
+    const spec = JSON.parse(document.querySelector('#architecture-data').textContent);
+    let url;
+    let revision = 0;
+    let id;
+    let timeout;
+    function suspend() {
+      if (id) frame.contentWindow.postMessage({ type: 'archify:suspend', id }, '*');
+    }
+    async function show(theme) {
+      suspend();
+      const request = ++revision;
+      const nextId = `synthetic-example-${request}`;
+      status.textContent = 'Rendering local JSON…';
+      clearTimeout(timeout);
+      try {
+        const html = await KaiwuArchify.renderArchitecture(spec, { theme, id: nextId });
+        if (request !== revision) return;
+        if (url) URL.revokeObjectURL(url);
+        id = nextId;
+        url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+        frame.src = url;
+        timeout = setTimeout(() => { status.textContent = 'Native viewer did not report ready.'; }, 15000);
+      } catch (error) {
+        if (request === revision) status.textContent = `Cannot render: ${error.message}`;
+      }
+    }
+    window.addEventListener('message', (event) => {
+      if (event.source !== frame.contentWindow || event.data?.id !== id || event.data.type !== 'archify:ready') return;
+      clearTimeout(timeout);
+      status.textContent = 'Native viewer ready · Still mode';
+    });
+    document.querySelector('#light').addEventListener('click', () => show('light'));
+    document.querySelector('#dark').addEventListener('click', () => show('dark'));
+    document.addEventListener('visibilitychange', () => { if (document.hidden) suspend(); });
+    window.addEventListener('pagehide', () => { suspend(); if (url) URL.revokeObjectURL(url); });
+    show('light');
+  </script>
+</body>
+</html>
