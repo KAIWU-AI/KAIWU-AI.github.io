@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Kaiwu Archify browser adapter</title>
+  <style>
+    :root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+    body { max-width: 900px; margin: 3rem auto; padding: 0 1.5rem; }
+    pre { overflow: auto; padding: 1rem; border: 1px solid #8886; border-radius: .5rem; }
+    code { font-family: ui-monospace, monospace; }
+    table { border-collapse: collapse; width: 100%; } th, td { text-align: left; vertical-align: top; padding: .6rem; border-bottom: 1px solid #8886; }
+  </style>
+</head>
+<body>
+  <h1>Kaiwu Archify browser adapter</h1>
+  <p><code>KaiwuArchify.renderArchitecture(spec, { theme, id })</code> renders local architecture JSON into a complete standalone HTML string. The browser performs schema checks, engineering-profile checks, layout validation, SVG rendering and native viewer composition. The adapter does not fetch input or submit diagram data.</p>
+  <p><a href="../vendor/archify-browser/demo.html">Run the synthetic example</a> · <a href="../vendor/archify-browser/d8e4daf-v1/manifest.json">Hashes and provenance</a> · <a href="../vendor/archify-browser/d8e4daf-v1/LICENSE">MIT license</a></p>
+  <h2>Load the versioned public library</h2>
+  <p>Use the immutable version directory, not an unversioned alias. The manifest supplies the exact SRI value. Normal site publishing requires no package installation or build step.</p>
+  <pre><code>&lt;script
+  src="https://kaiwu-ai.github.io/vendor/archify-browser/d8e4daf-v1/archify-browser.js"
+  integrity="sha384-CyW7WBiU/O0yG7mh3IWTRr2p4Scg+adraHXebQbztfOxckkqNo2cStiDdJSk+DoC"
+  crossorigin="anonymous"&gt;&lt;/script&gt;</code></pre>
+  <h2>Render local JSON</h2>
+  <p>The required theme is <code>light</code> or <code>dark</code>. The required id is a lowercase kebab-case string, starts with a letter and is at most 64 characters. Each call returns a Promise; rejected errors expose <code>archifyDiagnostics</code> with codes, subjects, evidence and supported fixes. Calls do not mutate their input or share layout/diagnostic state.</p>
+  <pre><code>const spec = JSON.parse(document.querySelector('#architecture-data').textContent);
+const id = 'local-diagram';
+const html = await KaiwuArchify.renderArchitecture(spec, { theme: 'light', id });
+const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+const frame = document.querySelector('iframe');
+frame.setAttribute('sandbox', 'allow-scripts allow-downloads');
+frame.referrerPolicy = 'no-referrer';
+frame.src = url;
+
+window.addEventListener('message', (event) =&gt; {
+  if (event.source !== frame.contentWindow) return;
+  if (event.data?.type === 'archify:ready' &amp;&amp; event.data.id === id) {
+    // Native initialization, API checks and synchronous SVG layout completed.
+  }
+});
+
+// Before hiding or replacing the viewer:
+frame.contentWindow.postMessage({ type: 'archify:suspend', id }, '*');
+// Revoke url when this viewer is removed or replaced, not before it loads.</code></pre>
+  <p>Keep specification data in a local <code>script[type="application/json"]</code> element and escape <code>&lt;</code>, <code>&gt;</code> and <code>&amp;</code> as JSON Unicode escapes when embedding it. Do not upload private specifications, generated viewers, screenshots or source evidence to this public repository.</p>
+  <h2>Browser boundaries</h2>
+  <table>
+    <thead><tr><th>Contract</th><th>Behavior</th></tr></thead>
+    <tbody>
+      <tr><td>Supported input</td><td>Upstream architecture schema version 1, including free/grid layout, boundaries, connections, cards, guided views, locales and authored quality/engineering profiles.</td></tr>
+      <tr><td>Rejected features</td><td><code>meta.output</code>, <code>meta.repository</code>, component <code>sources</code> and <code>brand</code>; custom templates, SVG, arbitrary option fields, accessor objects and non-JSON values.</td></tr>
+      <tr><td>Limits</td><td>256 KiB serialized UTF-8 JSON; 128 components, 256 connections, 64 boundaries, 32 cards, 32 views, 512 items per array, 8,192 characters per string, depth 24, 20,000 values and numeric magnitude 1,000,000. Upstream schema limits also apply.</td></tr>
+      <tr><td>Motion and theme</td><td>Starts in Still without persisting the choice. The validated theme wins over storage, URL parameters and OS changes. Native theme and motion controls remain interactive. Reduced motion, visibility and print pause motion; suspension also clears guided previews and settles handoffs.</td></tr>
+      <tr><td>Ready signal</td><td>Sent only after the native-script-end sentinel, required API checks and synchronous SVG geometry/layout measurement across a task/microtask boundary. Readiness does not wait for animation frames, which browsers may suspend for offscreen iframes. A captured script error or unhandled rejection suppresses readiness. The zero-view controller is supported without assuming an <code>isPlaying</code> method.</td></tr>
+      <tr><td>Child isolation</td><td>Hash-authorized inline scripts; inline styles required by the native viewer. CSP denies connections, fonts, external images, frames, workers, forms, object content and base URL changes. Blob/data images and Blob media support local export. There is no eval, filesystem shim, telemetry or input fetch.</td></tr>
+    </tbody>
+  </table>
+  <p>Use a current ES2022 browser. A scripts-only sandbox has an opaque origin: clipboard, share links, persistence and some export capabilities depend on browser permissions and may be unavailable. Treat ready as initialization evidence, not a guarantee that every optional browser export API exists. A frame with no measurable layout does not report ready. The parent must use a timeout, show errors, authenticate <code>event.source</code> and the matching id, and revoke its Blob URLs.</p>
+  <h2>Regenerate the vendored bundle</h2>
+  <p>The only upstream is the public <a href="https://github.com/tt-a1i/archify">tt-a1i/archify</a> repository at <code>d8e4daf2610d512821365f41b139d874b29efe81</code>. The build reads only files listed in <code>tools/archify-browser/upstream-lock.json</code> and verifies every SHA-256 before transforming source. A changed dependency, extraction marker or Node boundary aborts the build.</p>
+  <pre><code>git -c core.autocrlf=false clone https://github.com/tt-a1i/archify archify-upstream
+git -C archify-upstream checkout d8e4daf2610d512821365f41b139d874b29efe81
+# Point the build at the directory containing assets/, renderers/ and LICENSE.
+# In upstream layouts where the skill is nested, this is archify-upstream/archify.
+cd tools/archify-browser
+npm ci
+node build.mjs &lt;absolute-public-archify-skill-directory&gt;
+cd ../..
+node --test tests/*.test.mjs</code></pre>
+  <p>Only regeneration uses development tooling: esbuild is pinned to <code>0.25.12</code>, with its dependency lockfile committed. The build accepts an optional third argument naming an existing esbuild module file and still checks its exact version. No upstream examples or repository evidence enter the bundle. Update the version directory for a published runtime change and update consuming SRI values together.</p>
+  <h2>Adaptation and verification</h2>
+  <p>The checked transformation wraps the native architecture renderer body per invocation, removes CLI/file/environment boundaries, retains precompiled validators and ordered validation, and substitutes exact no-brand return values only after rejecting brand fields. Diagnostics retain rich geometry evidence. The native template and algorithms remain upstream code; browser-specific edits remove remote font links and add theme, initial Still, zero-view, CSP and lifecycle seams.</p>
+  <p>Node tests exercise rendering, isolation, rejection, escaping, diagnostics, actual script hashes, byte provenance, lifecycle messages and theme seams using synthetic data. Run all existing site tests before publication. Real-browser layout, export behavior and publication must be independently verified; Node's bridge harness does not replace browser validation.</p>
+  <p><strong>Verification — 2026-09-07:</strong> all 16 adapter tests passed. The synthetic SVG matched the unmodified pinned public CLI byte-for-byte. All 55 site tests passed in a <code>git -c core.autocrlf=false archive HEAD</code> tree with the new library overlaid. The existing Windows checkout passed 53 of 55: two unrelated vendored-asset hash tests detect CRLF conversion. Preserve Git's original LF bytes instead of updating those hashes. This library's scoped <code>.gitattributes</code> prevents line-ending conversion of its SRI-protected assets.</p>
+  <p><strong>Offscreen-readiness correction — 2026-09-07:</strong> browser integration exposed suspended animation frames below the fold. Readiness now uses a task/microtask boundary, the native completion sentinel, API checks and forced positive SVG geometry/layout measurements; missing geometry or a latched error still prevents ready. All 17 adapter tests passed, including a harness that never advances animation frames; all 56 site tests passed in the LF artifact. The rebuilt manifest and consumers use SHA-384 SRI. Real-browser revalidation remains required.</p>
+</body>
+</html>
