@@ -34,7 +34,7 @@ if (navToggle && navLinks) {
 }
 
 const revealTargets = document.querySelectorAll(
-  ".workflow-visual, .statement-copy, .section-heading, .direction-card, .project-panel, .cta",
+  ".workflow-visual, .statement-copy, .section-heading, .direction-card, .team-section, .project-panel, .cta",
 );
 
 const scrollVideos = document.querySelectorAll("[data-scroll-video]");
