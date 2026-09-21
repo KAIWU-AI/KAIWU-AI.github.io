@@ -41,16 +41,7 @@
     <script src="script.js" defer></script>
     <script type="module" src="platform-download.js"></script>
     <script src="starfield.js" defer></script>
-    <script src="public/components/planetary-gear-kit.js" defer></script>
-    <script src="public/components/universal-joint-kit.js" defer></script>
-    <script type="module">
-      import("./three-lab.js").catch((error) => {
-        document.querySelectorAll("[data-three-view]").forEach((viewport) => {
-          viewport.classList.add("has-error");
-        });
-        console.error("MindMotion 3D lab module failed to load.", error);
-      });
-    </script>
+    <script src="three-lab-loader.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳到主要内容 / Skip to content</a>
@@ -148,7 +139,7 @@
           <div class="flow-grid">
             <article class="flow-card">
               <div class="flow-card-video-shell" aria-hidden="true">
-                <video class="flow-card-video" data-scroll-video data-clip-window="3-10" src="assets/videos/brainstorm-avatar-card.mp4" poster="assets/videos/brainstorm-avatar-card-poster.jpg" muted loop playsinline preload="metadata"></video>
+                <video class="flow-card-video" data-scroll-video data-clip-window="3-10" data-src="assets/videos/brainstorm-avatar-card.mp4" poster="assets/videos/brainstorm-avatar-card-poster.jpg" muted loop playsinline preload="none"></video>
                 <div class="flow-card-video-mask"></div>
               </div>
               <span>01</span>
@@ -160,7 +151,7 @@
             </article>
             <article class="flow-card flow-card-accent">
               <div class="flow-card-video-shell" aria-hidden="true">
-                <video class="flow-card-video" data-scroll-video data-clip-window="3-10" src="assets/videos/brainstorm-female-teacher-card.mp4" poster="assets/videos/brainstorm-female-teacher-card-poster.jpg" muted loop playsinline preload="metadata"></video>
+                <video class="flow-card-video" data-scroll-video data-clip-window="3-10" data-src="assets/videos/brainstorm-female-teacher-card.mp4" poster="assets/videos/brainstorm-female-teacher-card-poster.jpg" muted loop playsinline preload="none"></video>
                 <div class="flow-card-video-mask"></div>
               </div>
               <span>02</span>
@@ -172,7 +163,7 @@
             </article>
             <article class="flow-card">
               <div class="flow-card-video-shell" aria-hidden="true">
-                <video class="flow-card-video" data-scroll-video data-clip-window="3-10" src="assets/videos/brainstorm-teacher-card.mp4" poster="assets/videos/brainstorm-teacher-card-poster.jpg" muted loop playsinline preload="metadata"></video>
+                <video class="flow-card-video" data-scroll-video data-clip-window="3-10" data-src="assets/videos/brainstorm-teacher-card.mp4" poster="assets/videos/brainstorm-teacher-card-poster.jpg" muted loop playsinline preload="none"></video>
                 <div class="flow-card-video-mask"></div>
               </div>
               <span>03</span>
@@ -302,12 +293,12 @@
             class="direction-video"
             data-scroll-video
             data-start-at="14.1"
-            src="assets/videos/zhang-industrial-engineering-bg.mp4"
+            data-src="assets/videos/zhang-industrial-engineering-bg.mp4"
             poster="assets/videos/zhang-industrial-engineering-poster.jpg"
             muted
             loop
             playsinline
-            preload="metadata"
+            preload="none"
             tabindex="-1"
           ></video>
           <div class="direction-video-mask"></div>

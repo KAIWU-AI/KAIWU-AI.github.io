@@ -11,9 +11,9 @@ async function text(path) {
   return readFile(resolve(root, path), 'utf8');
 }
 
-async function runVideoRuntime({ reduced = false, hasObserver = true, rejectPlay = false } = {}) {
+async function runVideoRuntime({ reduced = false, saveData = false, hasObserver = true, rejectPlay = false } = {}) {
   const script = await text('script.js');
-  const calls = { play: 0, pause: 0 };
+  const calls = { play: 0, pause: 0, load: 0 };
   const classes = new Set();
   const section = {
     classList: {
@@ -22,14 +22,19 @@ async function runVideoRuntime({ reduced = false, hasObserver = true, rejectPlay
     },
   };
   const video = {
-    dataset: { startAt: '14.1' },
+    dataset: { startAt: '14.1', src: 'assets/videos/example.mp4' },
     duration: 58.6,
     readyState: 1,
     currentTime: 0,
     muted: false,
     defaultMuted: false,
+    src: '',
+    hasAttribute: (name) => name === 'src' && Boolean(video.src),
     closest: () => section,
     addEventListener: () => {},
+    load: () => {
+      calls.load += 1;
+    },
     pause: () => {
       calls.pause += 1;
     },
@@ -50,7 +55,20 @@ async function runVideoRuntime({ reduced = false, hasObserver = true, rejectPlay
     }
     unobserve() {}
   }
-  const reducedMotion = { matches: reduced };
+  let motionChange;
+  let connectionChange;
+  const reducedMotion = {
+    matches: reduced,
+    addEventListener: (_event, callback) => {
+      motionChange = callback;
+    },
+  };
+  const connection = {
+    saveData,
+    addEventListener: (_event, callback) => {
+      connectionChange = callback;
+    },
+  };
   const window = {
     matchMedia: () => reducedMotion,
   };
@@ -67,12 +85,26 @@ async function runVideoRuntime({ reduced = false, hasObserver = true, rejectPlay
     },
     HTMLMediaElement: { HAVE_METADATA: 1 },
     IntersectionObserver: hasObserver ? FakeIntersectionObserver : undefined,
+    navigator: { connection },
     Number,
   };
 
   runInNewContext(script, context);
   await Promise.resolve();
-  return { calls, classes, observers, section };
+  return {
+    calls,
+    classes,
+    observers,
+    section,
+    setReduced(value) {
+      reducedMotion.matches = value;
+      motionChange?.();
+    },
+    setSaveData(value) {
+      connection.saveData = value;
+      connectionChange?.();
+    },
+  };
 }
 
 test('the complete core-capabilities section has a masked decorative background video', async () => {
@@ -86,11 +118,11 @@ test('the complete core-capabilities section has a masked decorative background 
   assert.equal((section.match(/class="direction-card"/g) || []).length, 3);
   assert.match(section, /class="direction-video-shell" aria-hidden="true"/);
   assert.match(section, /<video[^>]*data-scroll-video[^>]*>/);
-  assert.match(section, /src="assets\/videos\/zhang-industrial-engineering-bg\.mp4"/);
+  assert.match(section, /data-src="assets\/videos\/zhang-industrial-engineering-bg\.mp4"/);
   assert.match(section, /poster="assets\/videos\/zhang-industrial-engineering-poster\.jpg"/);
   assert.match(section, /\bmuted\b/);
   assert.match(section, /\bplaysinline\b/);
-  assert.match(section, /preload="metadata"/);
+  assert.match(section, /preload="none"/);
   assert.doesNotMatch(section, /\bcontrols\b/);
   assert.match(section, /class="direction-video-mask"/);
   assert.doesNotMatch(html, /direction-card-video|data-scroll-video-card/);
@@ -120,14 +152,16 @@ test('the background video pauses offscreen and for reduced-motion users', async
 
 test('the runtime only plays in view and pauses again offscreen', async () => {
   const runtime = await runVideoRuntime();
-  const videoObserver = runtime.observers.find((observer) => observer.options?.threshold === 0.35);
+  const videoObserver = runtime.observers.find((observer) => observer.options?.threshold === 0.1);
 
   assert.ok(videoObserver, 'video observer must be installed');
   assert.equal(runtime.calls.play, 0, 'video must not play during initialization');
+  assert.equal(runtime.calls.load, 0, 'video bytes must not load during initialization');
 
   videoObserver.callback([{ isIntersecting: true }]);
   await Promise.resolve();
   assert.equal(runtime.calls.play, 1);
+  assert.equal(runtime.calls.load, 1);
   assert.ok(runtime.classes.has('is-video-active'));
 
   videoObserver.callback([{ isIntersecting: false }]);
@@ -135,18 +169,37 @@ test('the runtime only plays in view and pauses again offscreen', async () => {
   assert.ok(!runtime.classes.has('is-video-active'));
 });
 
-test('observer absence and reduced motion both keep a paused visual', async () => {
-  for (const options of [{ hasObserver: false }, { reduced: true }]) {
+test('observer absence, reduced motion and save-data keep a poster-only paused visual', async () => {
+  for (const options of [{ hasObserver: false }, { reduced: true }, { saveData: true }]) {
     const runtime = await runVideoRuntime(options);
     assert.equal(runtime.calls.play, 0);
     assert.equal(runtime.calls.pause, 1);
+    assert.equal(runtime.calls.load, 0);
     assert.ok(runtime.classes.has('is-video-active'));
   }
 });
 
+test('changing motion or data-saving preferences updates visible video playback without reloading', async () => {
+  const runtime = await runVideoRuntime();
+  const videoObserver = runtime.observers.find((observer) => observer.options?.threshold === 0.1);
+
+  videoObserver.callback([{ isIntersecting: true }]);
+  await Promise.resolve();
+  runtime.setReduced(true);
+  assert.equal(runtime.calls.pause, 1);
+  runtime.setReduced(false);
+  await Promise.resolve();
+  assert.equal(runtime.calls.play, 2);
+  assert.equal(runtime.calls.load, 1);
+
+  runtime.setSaveData(true);
+  assert.equal(runtime.calls.pause, 2);
+  assert.equal(runtime.calls.load, 1);
+});
+
 test('a rejected muted autoplay attempt is handled without an unhandled rejection', async () => {
   const runtime = await runVideoRuntime({ rejectPlay: true });
-  const videoObserver = runtime.observers.find((observer) => observer.options?.threshold === 0.35);
+  const videoObserver = runtime.observers.find((observer) => observer.options?.threshold === 0.1);
 
   videoObserver.callback([{ isIntersecting: true }]);
   await Promise.resolve();
@@ -183,13 +236,13 @@ test('the three hero workflow cards each have their own parallel background vide
   cards.forEach((card, index) => {
     assert.match(card, /class="flow-card-video-shell" aria-hidden="true"/);
     assert.match(card, /<video[^>]*class="flow-card-video"[^>]*data-scroll-video[^>]*>/);
-    assert.match(card, new RegExp(`src="${sources[index].replaceAll('.', '\\.')}`));
-    assert.match(card, new RegExp(`poster="${posters[index].replaceAll('.', '\\.')}`));
+    assert.match(card, new RegExp(`data-src="${sources[index].replaceAll('.', '\\.')}"`));
+    assert.match(card, new RegExp(`poster="${posters[index].replaceAll('.', '\\.')}"`));
     assert.match(card, /data-clip-window="3-10"/);
     assert.match(card, /\bmuted\b/);
     assert.match(card, /\bloop\b/);
     assert.match(card, /\bplaysinline\b/);
-    assert.match(card, /preload="metadata"/);
+    assert.match(card, /preload="none"/);
     assert.doesNotMatch(card, /\bcontrols\b/);
     assert.match(card, /class="flow-card-video-mask"/);
   });

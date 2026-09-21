@@ -55,23 +55,42 @@ scrollVideos.forEach((video) => {
     }
   };
 
-  if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
-    seekToStart();
-  } else {
-    video.addEventListener("loadedmetadata", seekToStart, { once: true });
-  }
+  const loadVideo = () => {
+    if (!video.hasAttribute("src") && video.dataset.src) {
+      video.src = video.dataset.src;
+      video.load();
+    }
+    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      seekToStart();
+    } else {
+      video.addEventListener("loadedmetadata", seekToStart, { once: true });
+    }
+  };
 
-  if (reducedMotion.matches) {
-    video.pause();
-    section.classList.add("is-video-active");
-    return;
-  }
+  const connection = navigator.connection;
+  let isIntersecting = false;
+  const motionAllowed = () =>
+    !reducedMotion.matches && !Boolean(connection?.saveData);
 
   const playVideo = () => {
+    loadVideo();
     section.classList.add("is-video-active");
     video.play().catch(() => {
       // Muted autoplay can still be blocked by browser policy; the poster remains visible.
     });
+  };
+
+  const syncPlayback = () => {
+    if (isIntersecting && motionAllowed()) {
+      playVideo();
+      return;
+    }
+    video.pause();
+    if (motionAllowed()) {
+      section.classList.remove("is-video-active");
+    } else {
+      section.classList.add("is-video-active");
+    }
   };
 
   if (!("IntersectionObserver" in window)) {
@@ -80,21 +99,23 @@ scrollVideos.forEach((video) => {
     return;
   }
 
+  if (!motionAllowed()) {
+    video.pause();
+    section.classList.add("is-video-active");
+  }
+
   const videoObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          playVideo();
-          return;
-        }
-
-        video.pause();
-        section.classList.remove("is-video-active");
+        isIntersecting = entry.isIntersecting;
+        syncPlayback();
       });
     },
-    { threshold: 0.35 },
+    { threshold: 0.1 },
   );
 
+  reducedMotion.addEventListener?.("change", syncPlayback);
+  connection?.addEventListener?.("change", syncPlayback);
   videoObserver.observe(section);
 });
 
