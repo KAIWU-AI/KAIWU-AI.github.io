@@ -15,6 +15,7 @@ import {
 } from "./components/mechanical-scene-data.mjs";
 
 let THREE;
+let threeRuntimePromise;
 
 function releaseProbeContext(context) {
   try {
@@ -48,12 +49,17 @@ function detectGraphicsMode() {
 
 const GRAPHICS_MODE = detectGraphicsMode();
 
-async function loadThreeRuntime() {
-  if (GRAPHICS_MODE === "lite") return null;
-  if (GRAPHICS_MODE === "webgl1") {
-    return import("./vendor/three-r162.module.min.js");
+function loadThreeRuntime() {
+  if (!threeRuntimePromise) {
+    if (GRAPHICS_MODE === "lite") {
+      threeRuntimePromise = Promise.resolve(null);
+    } else if (GRAPHICS_MODE === "webgl1") {
+      threeRuntimePromise = import("./vendor/three-r162.module.min.js");
+    } else {
+      threeRuntimePromise = import("./vendor/three.module.min.js");
+    }
   }
-  return import("./vendor/three.module.min.js");
+  return threeRuntimePromise;
 }
 
 const viewports = [...document.querySelectorAll("[data-three-view]")];
@@ -62,6 +68,10 @@ if (viewports.length !== 3) {
 }
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const compactDevice =
+  window.matchMedia("(max-width: 640px)").matches ||
+  Boolean(navigator.connection?.saveData);
+const targetFrameInterval = compactDevice ? 1000 / 20 : 1000 / 30;
 
 function fract(value) {
   return value - Math.floor(value);
@@ -682,6 +692,7 @@ const builders = {
 const runtimeState = {
   elapsed: 0,
   lastTime: performance.now(),
+  lastRenderTime: 0,
   frame: 0,
 };
 const views = [];
@@ -726,8 +737,16 @@ function stopAnimation() {
 function animate(time) {
   runtimeState.frame = 0;
   if (document.hidden || reducedMotion.matches) return;
-  const delta = Math.min((time - runtimeState.lastTime) / 1000, 0.05);
+  if (
+    runtimeState.lastRenderTime &&
+    time - runtimeState.lastRenderTime < targetFrameInterval
+  ) {
+    scheduleAnimation();
+    return;
+  }
+  const delta = Math.max(0, Math.min((time - runtimeState.lastTime) / 1000, 0.05));
   runtimeState.lastTime = time;
+  runtimeState.lastRenderTime = time;
   runtimeState.elapsed += delta;
   for (const view of views) {
     if (!view.visible || view.error) continue;
@@ -812,16 +831,13 @@ function createView(viewport) {
       alpha: true,
       antialias: GRAPHICS_MODE === "webgl2",
     };
-    if (GRAPHICS_MODE === "webgl2") {
-      rendererOptions.powerPreference = "high-performance";
-    }
+    rendererOptions.powerPreference = compactDevice ? "low-power" : "high-performance";
     renderer = new THREE.WebGLRenderer(rendererOptions);
-    const compactDevice = window.matchMedia("(max-width: 640px)").matches;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, compactDevice ? 1 : 1.25));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.18;
-    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.enabled = !compactDevice;
     addSceneEnvironment(scene, modelRoot);
     model = builder(renderer);
     modelRoot.add(model.root);
@@ -981,86 +997,165 @@ function createView(viewport) {
   return view;
 }
 
-loadThreeRuntime()
-  .then((runtime) => {
-    THREE = runtime;
-    for (const viewport of viewports) {
-      views.push(createView(viewport));
-    }
+const sceneDependencyPromises = new Map();
+const activationPromises = new WeakMap();
+let sceneActivationQueue = Promise.resolve();
 
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) {
-        stopAnimation();
-      } else {
-        runtimeState.lastTime = performance.now();
-        for (const view of views) view.render();
-        scheduleAnimation();
+function scheduleSceneCreation(task) {
+  const runWhenIdle = () => new Promise((resolve, reject) => {
+    const run = () => {
+      try {
+        resolve(task());
+      } catch (error) {
+        reject(error);
       }
-    });
-
-    reducedMotion.addEventListener("change", () => {
-      if (reducedMotion.matches) stopAnimation();
-      for (const view of views) {
-        if (view.error) continue;
-        view.model.update(runtimeState.elapsed);
-        view.render();
-      }
-      scheduleAnimation();
-    });
-
-    window.__mindMotionThreeLab = Object.freeze({
-      resetView(name) {
-        const view = views.find((item) => item.name === name);
-        view?.resetView();
-      },
-      getDiagnostics() {
-        return {
-          layout: "responsive-grid",
-          graphicsMode: GRAPHICS_MODE,
-          threeRevision: THREE?.REVISION || null,
-          viewCount: views.length,
-          elapsed: runtimeState.elapsed,
-          reducedMotion: reducedMotion.matches,
-          animationFrameScheduled: Boolean(runtimeState.frame),
-          scenes: Object.fromEntries(
-            views.map((view) => [
-              view.name,
-              {
-                visible: view.visible,
-                error: view.error,
-                view: {
-                  yaw: view.pointer.yaw,
-                  pitch: view.pointer.pitch,
-                  targetYaw: view.pointer.targetYaw,
-                  targetPitch: view.pointer.targetPitch,
-                },
-                renderer: view.renderer
-                  ? (view.renderer.capabilities.isWebGL2 ? "webgl2" : "webgl1")
-                  : "css-lite",
-                renderStats: view.renderer ? {
-                  calls: view.renderer.info.render.calls,
-                  triangles: view.renderer.info.render.triangles,
-                  lines: view.renderer.info.render.lines,
-                  points: view.renderer.info.render.points,
-                  geometries: view.renderer.info.memory.geometries,
-                  textures: view.renderer.info.memory.textures,
-                } : null,
-                model: view.model?.diagnostics || null,
-              },
-            ]),
-          ),
-        };
-      },
-    });
-
-    runtimeState.lastTime = performance.now();
-    scheduleAnimation();
-  })
-  .catch((error) => {
-    THREE = null;
-    for (const viewport of viewports) {
-      const canvas = viewport.querySelector("[data-three-canvas]");
-      views.push(createLiteView(viewport, viewport.dataset.threeView, canvas, error));
+    };
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(run, { timeout: 250 });
+    } else {
+      window.setTimeout(run, 0);
     }
-    console.error("MindMotion 3D runtime failed to load; lite views remain available.", error);
   });
+  const scheduled = sceneActivationQueue.then(runWhenIdle, runWhenIdle);
+  sceneActivationQueue = scheduled.catch(() => {});
+  return scheduled;
+}
+
+function loadSceneDependency(name) {
+  if (name === "solar") return Promise.resolve();
+  if (!sceneDependencyPromises.has(name)) {
+    if (name === "gearbox") {
+      sceneDependencyPromises.set(
+        name,
+        import("./public/components/planetary-gear-kit.js"),
+      );
+    } else if (name === "joint") {
+      sceneDependencyPromises.set(
+        name,
+        import("./public/components/universal-joint-kit.js"),
+      );
+    } else {
+      sceneDependencyPromises.set(name, Promise.resolve());
+    }
+  }
+  return sceneDependencyPromises.get(name);
+}
+
+function activateViewport(viewport) {
+  if (activationPromises.has(viewport)) {
+    return activationPromises.get(viewport);
+  }
+
+  const name = viewport.dataset.threeView;
+  viewport.dataset.threeState = "loading";
+  const activation = loadThreeRuntime()
+    .then(async (runtime) => {
+      THREE = runtime;
+      if (runtime) await loadSceneDependency(name);
+      return scheduleSceneCreation(() => {
+        const view = createView(viewport);
+        views.push(view);
+        viewport.dataset.threeState = view.error ? "lite" : "ready";
+        if (!runtimeState.frame) runtimeState.lastTime = performance.now();
+        scheduleAnimation();
+        return view;
+      });
+    })
+    .catch((error) => {
+      const canvas = viewport.querySelector("[data-three-canvas]");
+      const view = createLiteView(viewport, name, canvas, error);
+      views.push(view);
+      viewport.dataset.threeState = "lite";
+      return view;
+    });
+
+  activationPromises.set(viewport, activation);
+  return activation;
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopAnimation();
+  } else {
+    runtimeState.lastTime = performance.now();
+    runtimeState.lastRenderTime = 0;
+    for (const view of views) {
+      if (view.visible && !view.error) view.render();
+    }
+    scheduleAnimation();
+  }
+});
+
+reducedMotion.addEventListener("change", () => {
+  if (reducedMotion.matches) stopAnimation();
+  for (const view of views) {
+    if (!view.visible || view.error) continue;
+    view.model.update(runtimeState.elapsed);
+    view.render();
+  }
+  runtimeState.lastRenderTime = 0;
+  scheduleAnimation();
+});
+
+window.__mindMotionThreeLab = Object.freeze({
+  resetView(name) {
+    const view = views.find((item) => item.name === name);
+    view?.resetView();
+  },
+  getDiagnostics() {
+    return {
+      layout: "responsive-grid",
+      graphicsMode: GRAPHICS_MODE,
+      threeRevision: THREE?.REVISION || null,
+      viewCount: views.length,
+      pendingViewCount: viewports.length - views.length,
+      elapsed: runtimeState.elapsed,
+      reducedMotion: reducedMotion.matches,
+      targetFps: Math.round(1000 / targetFrameInterval),
+      animationFrameScheduled: Boolean(runtimeState.frame),
+      scenes: Object.fromEntries(
+        views.map((view) => [
+          view.name,
+          {
+            visible: view.visible,
+            error: view.error,
+            view: {
+              yaw: view.pointer.yaw,
+              pitch: view.pointer.pitch,
+              targetYaw: view.pointer.targetYaw,
+              targetPitch: view.pointer.targetPitch,
+            },
+            renderer: view.renderer
+              ? (view.renderer.capabilities.isWebGL2 ? "webgl2" : "webgl1")
+              : "css-lite",
+            renderStats: view.renderer ? {
+              calls: view.renderer.info.render.calls,
+              triangles: view.renderer.info.render.triangles,
+              lines: view.renderer.info.render.lines,
+              points: view.renderer.info.render.points,
+              geometries: view.renderer.info.memory.geometries,
+              textures: view.renderer.info.memory.textures,
+            } : null,
+            model: view.model?.diagnostics || null,
+          },
+        ]),
+      ),
+    };
+  },
+});
+
+if ("IntersectionObserver" in window) {
+  const activationObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        activationObserver.unobserve(entry.target);
+        activateViewport(entry.target);
+      }
+    },
+    { rootMargin: "240px 0px", threshold: 0.01 },
+  );
+  viewports.forEach((viewport) => activationObserver.observe(viewport));
+} else {
+  viewports.forEach(activateViewport);
+}

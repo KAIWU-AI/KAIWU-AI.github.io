@@ -23,13 +23,13 @@ test('all local HTML, CSS and module references resolve inside the static site',
   const lab = await readFile(resolve(root, 'three-lab.js'), 'utf8');
   const references = [];
 
-  for (const match of index.matchAll(/(?:src|href)=["']([^"']+)["']/g)) {
+  for (const match of index.matchAll(/(?:src|href|data-src)=["']([^"']+)["']/g)) {
     references.push(match[1]);
   }
   for (const match of styles.matchAll(/url\(["']?([^"')]+)["']?\)/g)) {
     references.push(match[1]);
   }
-  for (const match of lab.matchAll(/from\s+["']([^"']+)["']/g)) {
+  for (const match of lab.matchAll(/(?:from\s+|import\()["']([^"']+)["']/g)) {
     references.push(match[1]);
   }
 
@@ -79,8 +79,8 @@ test('3D runtime feature-detects observers and handles WebGL context loss', asyn
   assert.match(script, /if \("IntersectionObserver" in window\)/);
   assert.match(script, /if \("ResizeObserver" in window\)/);
   assert.match(script, /webglcontextlost/);
-  const html = await readFile(resolve(root, 'index.html'), 'utf8');
-  assert.match(html, /import\("\.\/three-lab\.js"\)\.catch/);
+  const loader = await readFile(resolve(root, 'three-lab-loader.js'), 'utf8');
+  assert.match(loader, /import\("\.\/three-lab\.js"\)/);
 });
 
 test('3D lab supports WebGL1 and keeps a visual fallback without WebGL', async () => {

@@ -16,6 +16,10 @@
   }
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const compactDevice =
+    window.matchMedia("(max-width: 640px)").matches ||
+    Boolean(navigator.connection?.saveData);
+  const targetFrameInterval = compactDevice ? 1000 / 20 : 1000 / 30;
   const palette = [
     [102, 8, 116],
     [102, 8, 116],
@@ -41,6 +45,7 @@
   let particles = [];
   let animationFrame = 0;
   let previousTime = 0;
+  let previousPaintTime = 0;
   let resizeTimer = 0;
   let firstPaintAt = 0;
 
@@ -70,7 +75,7 @@
   };
 
   const resize = () => {
-    pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    pixelRatio = Math.min(window.devicePixelRatio || 1, compactDevice ? 1 : 1.5);
     width = window.innerWidth;
     height = window.innerHeight;
     focalX = width * focalBase.x;
@@ -154,25 +159,31 @@
 
   const animate = (time) => {
     animationFrame = window.requestAnimationFrame(animate);
+    if (previousPaintTime && time - previousPaintTime < targetFrameInterval) {
+      return;
+    }
     if (!previousTime) {
       previousTime = time;
     }
 
-    const elapsed = Math.min(time - previousTime, 40);
+    const elapsed = Math.min(time - previousTime, 60);
     previousTime = time;
+    previousPaintTime = time;
     offsetX += (targetOffsetX - offsetX) * 0.025;
     offsetY += (targetOffsetY - offsetY) * 0.025;
     context.clearRect(0, 0, width, height);
+    const turn = elapsed * 0.0000028;
+    const turnCos = Math.cos(turn);
+    const turnSin = Math.sin(turn);
 
     for (let index = 0; index < particles.length; index += 1) {
       const particle = particles[index];
       const previous = project(particle);
 
       particle.z -= elapsed * 0.00013 * particle.speed;
-      const turn = elapsed * 0.0000028;
       const oldX = particle.x;
-      particle.x = oldX * Math.cos(turn) - particle.y * Math.sin(turn);
-      particle.y = oldX * Math.sin(turn) + particle.y * Math.cos(turn);
+      particle.x = oldX * turnCos - particle.y * turnSin;
+      particle.y = oldX * turnSin + particle.y * turnCos;
 
       const current = project(particle);
       const outside =
@@ -200,6 +211,7 @@
   const start = () => {
     stop();
     previousTime = 0;
+    previousPaintTime = 0;
     drawStaticField();
     if (reducedMotion.matches) {
       return;
