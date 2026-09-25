@@ -6,9 +6,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const windowsDownloadUrl =
-  'https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.7/MindMotion_0.1.7_x64-setup.exe';
+  'https://apps.microsoft.com/detail/9NPQH4HQD3WK';
 const macosDownloadUrl =
-  'https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.7/MindMotion_0.1.7_aarch64.dmg';
+  'https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.2.0/MindMotion_0.2.0_aarch64.dmg';
 
 async function loadModule() {
   return import(`${pathToFileURL(resolve(root, 'platform-download.js')).href}?test=${Date.now()}`);
@@ -48,7 +48,7 @@ function fakeButton() {
   };
 }
 
-test('hero primary action is wired to both verified 0.1.7 desktop release assets', async () => {
+test('hero primary action uses Microsoft Store for Windows and the 0.2.0 macOS disk image', async () => {
   const html = await readFile(resolve(root, 'index.html'), 'utf8');
   assert.match(html, /<script type="module" src="platform-download\.js"><\/script>/);
   assert.match(html, /data-platform-download/);
@@ -162,17 +162,17 @@ test('platform detection fails closed for conflicts and mobile devices', async (
   assert.equal(detectDesktopPlatform({}), 'other');
 });
 
-test('Windows visitors receive a direct download link', async () => {
+test('Windows visitors receive a Microsoft Store link without a download attribute', async () => {
   const { configurePlatformDownload } = await loadModule();
   const button = fakeButton();
   configurePlatformDownload(button, { userAgentData: { platform: 'Windows' } });
 
   assert.equal(button.getAttribute('href'), windowsDownloadUrl);
-  assert.equal(button.getAttribute('download'), 'MindMotion_0.1.7_x64-setup.exe');
-  assert.equal(button.getAttribute('aria-label'), '下载 MindMotion 0.1.7 Windows x64 安装包');
-  assert.equal(button.getAttribute('title'), '下载 MindMotion 0.1.7 Windows x64 安装包');
+  assert.equal(button.getAttribute('download'), null);
+  assert.equal(button.getAttribute('aria-label'), '从 Microsoft Store 获取 MindMotion Windows 版');
+  assert.equal(button.getAttribute('title'), '从 Microsoft Store 获取 MindMotion Windows 版');
   assert.equal(button.getAttribute('aria-disabled'), null);
-  assert.equal(button.label.textContent, '下载 Windows 版 · v0.1.7');
+  assert.equal(button.label.textContent, '从 Microsoft Store 获取 Windows 版');
   assert.equal(button.icon.textContent, '↓');
   assert.equal(button.classList.contains('is-disabled'), false);
   assert.equal(button.click().prevented, false);
@@ -184,15 +184,44 @@ test('macOS visitors receive the Apple Silicon disk image', async () => {
   configurePlatformDownload(button, { platform: 'MacIntel' });
 
   assert.equal(button.getAttribute('href'), macosDownloadUrl);
-  assert.equal(button.getAttribute('download'), 'MindMotion_0.1.7_aarch64.dmg');
-  assert.equal(button.getAttribute('aria-label'), '下载 MindMotion 0.1.7 macOS Apple 芯片安装包');
-  assert.equal(button.getAttribute('title'), '下载 MindMotion 0.1.7 macOS Apple 芯片安装包');
+  assert.equal(button.getAttribute('download'), 'MindMotion_0.2.0_aarch64.dmg');
+  assert.equal(button.getAttribute('aria-label'), '下载 MindMotion 0.2.0 macOS Apple 芯片安装包');
+  assert.equal(button.getAttribute('title'), '下载 MindMotion 0.2.0 macOS Apple 芯片安装包');
   assert.equal(button.getAttribute('aria-disabled'), null);
-  assert.equal(button.label.textContent, '下载 macOS（Apple 芯片）· v0.1.7');
+  assert.equal(button.label.textContent, '下载 macOS（Apple 芯片）· v0.2.0');
   assert.equal(button.icon.textContent, '↓');
   assert.equal(button.classList.contains('is-disabled'), false);
   assert.equal(button.click().prevented, false);
 });
+
+test('macOS to Windows reconfiguration removes the disk image download attribute', async () => {
+  const { configurePlatformDownload } = await loadModule();
+  const button = fakeButton();
+  configurePlatformDownload(button, { platform: 'MacIntel' });
+  assert.match(button.getAttribute('download'), /\.dmg$/);
+
+  configurePlatformDownload(button, { platform: 'Win32' });
+  assert.equal(button.getAttribute('href'), windowsDownloadUrl);
+  assert.equal(button.getAttribute('download'), null);
+  assert.equal(button.label.textContent, '从 Microsoft Store 获取 Windows 版');
+  assert.equal(button.getAttribute('aria-label'), '从 Microsoft Store 获取 MindMotion Windows 版');
+  assert.equal(button.getAttribute('title'), '从 Microsoft Store 获取 MindMotion Windows 版');
+  assert.equal(button.click().prevented, false);
+});
+
+for (const [platform, url, filename] of [
+  ['Win32', windowsDownloadUrl, null],
+  ['MacIntel', macosDownloadUrl, 'MindMotion_0.2.0_aarch64.dmg'],
+]) {
+  test(`${platform} uses the current download target when data attributes are absent`, async () => {
+    const { configurePlatformDownload } = await loadModule();
+    const button = fakeButton();
+    button.dataset = {};
+    configurePlatformDownload(button, { platform });
+    assert.equal(button.getAttribute('href'), url);
+    assert.equal(button.getAttribute('download'), filename);
+  });
+}
 
 test('other platforms do not receive an incompatible installer', async () => {
   const { configurePlatformDownload } = await loadModule();
@@ -214,7 +243,7 @@ test('reconfiguration safely switches between Windows, macOS, disabled, and Wind
 
   configurePlatformDownload(button, { platform: 'MacIntel' });
   assert.equal(button.getAttribute('href'), macosDownloadUrl);
-  assert.equal(button.getAttribute('download'), 'MindMotion_0.1.7_aarch64.dmg');
+  assert.equal(button.getAttribute('download'), 'MindMotion_0.2.0_aarch64.dmg');
   assert.equal(button.getAttribute('aria-disabled'), null);
   assert.equal(button.click().prevented, false);
 

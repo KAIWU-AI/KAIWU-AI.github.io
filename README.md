@@ -6,6 +6,14 @@ This is the official GitHub Pages website for [KAIWU-AI](https://github.com/KAIW
 
 MindMotion 的 Logo、紫色品牌 token 与连续工作台视觉语言来自 AgentV 已合并的 [PR #24](https://github.com/KAIWU-AI/AgentV/pull/24)，官网仅做品牌与界面语言融合，保留原有核心布局和 3D 交互。资源来源、固定提交、SHA-256 与适配边界见 [`docs/mindmotion-brand-integration.md`](./docs/mindmotion-brand-integration.md)。
 
+## 桌面版下载 / Desktop downloads
+
+首页按钮按系统显示下载入口：
+
+- **macOS（Apple 芯片）**：[MindMotion 0.2.0 DMG](https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.2.0/MindMotion_0.2.0_aarch64.dmg)。
+- **Windows**：[从 Microsoft Store 获取 MindMotion](https://apps.microsoft.com/detail/9NPQH4HQD3WK)，版本以商店页面为准。
+- 其他平台保持禁用，不提供不兼容的安装包。
+
 ## 本地预览 / Local preview
 
 站点是零构建依赖的静态页面，并在 `vendor/` 中本地托管固定版本的 Three.js，用于太阳系、行星齿轮箱和万向节 3D 教学场景。克隆仓库后，请在仓库根目录启动任意静态文件服务器：
