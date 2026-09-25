@@ -1,7 +1,7 @@
 export const WINDOWS_DOWNLOAD_URL =
-  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.7/MindMotion_0.1.7_x64-setup.exe";
+  "https://apps.microsoft.com/detail/9NPQH4HQD3WK";
 export const MACOS_DOWNLOAD_URL =
-  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.1.7/MindMotion_0.1.7_aarch64.dmg";
+  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.2.0/MindMotion_0.2.0_aarch64.dmg";
 
 export function detectDesktopPlatform(navigatorLike = {}) {
   const userAgent = String(navigatorLike.userAgent || "").trim().toLowerCase();
@@ -108,7 +108,11 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
 
   const enableDownload = ({ url, filename, ariaLabel, title, labelText }) => {
     button.setAttribute("href", url);
-    button.setAttribute("download", filename);
+    if (filename) {
+      button.setAttribute("download", filename);
+    } else {
+      button.removeAttribute("download");
+    }
     button.setAttribute("aria-label", ariaLabel);
     button.setAttribute("title", title);
     button.removeAttribute("aria-disabled");
@@ -121,10 +125,9 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
   if (platform === "windows") {
     enableDownload({
       url: windowsDownloadUrl,
-      filename: "MindMotion_0.1.7_x64-setup.exe",
-      ariaLabel: "下载 MindMotion 0.1.7 Windows x64 安装包",
-      title: "下载 MindMotion 0.1.7 Windows x64 安装包",
-      labelText: "下载 Windows 版 · v0.1.7",
+      ariaLabel: "从 Microsoft Store 获取 MindMotion Windows 版",
+      title: "从 Microsoft Store 获取 MindMotion Windows 版",
+      labelText: "从 Microsoft Store 获取 Windows 版",
     });
     return platform;
   }
@@ -132,10 +135,10 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
   if (platform === "macos") {
     enableDownload({
       url: macosDownloadUrl,
-      filename: "MindMotion_0.1.7_aarch64.dmg",
-      ariaLabel: "下载 MindMotion 0.1.7 macOS Apple 芯片安装包",
-      title: "下载 MindMotion 0.1.7 macOS Apple 芯片安装包",
-      labelText: "下载 macOS（Apple 芯片）· v0.1.7",
+      filename: "MindMotion_0.2.0_aarch64.dmg",
+      ariaLabel: "下载 MindMotion 0.2.0 macOS Apple 芯片安装包",
+      title: "下载 MindMotion 0.2.0 macOS Apple 芯片安装包",
+      labelText: "下载 macOS（Apple 芯片）· v0.2.0",
     });
     return platform;
   }
