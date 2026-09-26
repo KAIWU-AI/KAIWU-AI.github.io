@@ -38,7 +38,11 @@ test('public product surfaces are fully branded as MindMotion', async () => {
     text('README.md'),
   ]);
 
-  assert.doesNotMatch(html, /AgentV/i);
+  // AgentV remains only as the required sign-in identity for case search.
+  const productHtml = html
+    .replace('需要已获授权的 AgentV 用户登录。', '')
+    .replace('Sign-in with an authorized AgentV account is required.', '');
+  assert.doesNotMatch(productHtml, /AgentV/i);
   assert.doesNotMatch(runtime, /AgentV/i);
   assert.doesNotMatch(starfield, /AgentV/i);
   assert.match(readme, /MindMotion/);
@@ -50,6 +54,42 @@ test('public product surfaces are fully branded as MindMotion', async () => {
   );
   assert.doesNotMatch(html, /成为生动的视频/);
   assert.match(html, /MindMotion \/ Product/);
+});
+
+test('case search replaces source-release promises and all fragment links resolve', async () => {
+  const html = await text('index.html');
+  const searchUrl = 'https://thedoorofai.com/api/kaiwuai/mindmotion/search/';
+  assert.doesNotMatch(html, /开源|公开源码|公开代码|open[-\s]source|code[^<]*will be shared/i);
+  const nav = html.match(/<nav[\s\S]*?<\/nav>/)?.[0] || '';
+  const projects = html.match(/<section[^>]*id="projects"[\s\S]*?<\/section>/)?.[0] || '';
+  for (const block of [nav, projects]) {
+    assert.ok(block.includes(`href="${searchUrl}"`));
+    assert.match(block, /案例搜索/);
+    assert.match(block, /Case search/i);
+    assert.doesNotMatch(block, /github\.com|IN PREPARATION/);
+  }
+  assert.match(projects, /THU课程成果知识库/);
+  assert.match(projects, /THU Course Outcomes Knowledge Base/);
+  assert.match(projects, /需要已获授权的 AgentV 用户登录。/);
+  assert.match(projects, /Sign-in with an authorized AgentV account is required\./);
+  const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
+  assert.equal(ids.length, new Set(ids).size, 'IDs must be unique');
+  for (const [, id] of html.matchAll(/\shref="#([^"]*)"/g)) {
+    assert.ok(ids.includes(id), `missing anchor target: ${id}`);
+  }
+});
+
+test('download and brand documentation reflect desktop guidance and the sign-in exception', async () => {
+  const readme = await text('README.md');
+  const brand = await text('docs/mindmotion-brand-integration.md');
+  assert.match(readme, /ms-windows-store:\/\/pdp\/\?ProductId=9NPQH4HQD3WK/);
+  assert.match(readme, /https:\/\/apps\.microsoft\.com\/detail\/9NPQH4HQD3WK/);
+  assert.match(readme, /#desktop-download/);
+  assert.match(readme, /https:\/\/kaiwu-ai\.github\.io\//);
+  assert.match(readme, /https:\/\/thedoorofai\.com\/api\/kaiwuai\/mindmotion\/search\//);
+  assert.doesNotMatch(readme, /其他平台保持禁用|不支持|unsupported/i);
+  assert.match(brand, /AgentV.*登录/);
+  assert.doesNotMatch(brand, /不更改组织名、GitHub 链接|公开页面和运行时不存在旧产品名/);
 });
 
 test('hero workflow prompt describes large language and diffusion models', async () => {

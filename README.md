@@ -8,11 +8,22 @@ MindMotion 的 Logo、紫色品牌 token 与连续工作台视觉语言来自 Ag
 
 ## 桌面版下载 / Desktop downloads
 
-首页按钮按系统显示下载入口：
+首页按钮按系统显示桌面客户端下载入口 / The primary action is tailored to the visitor's platform:
 
 - **macOS（Apple 芯片）**：[MindMotion 0.2.0 DMG](https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.2.0/MindMotion_0.2.0_aarch64.dmg)。
-- **Windows**：[从 Microsoft Store 获取 MindMotion](https://apps.microsoft.com/detail/9NPQH4HQD3WK)，版本以商店页面为准。
-- 其他平台保持禁用，不提供不兼容的安装包。
+- **Windows**：主按钮使用 `ms-windows-store://pdp/?ProductId=9NPQH4HQD3WK` 打开 Microsoft Store，不设置 `download` 属性；版本以商店页面为准。The Windows action opens the native Microsoft Store.
+- **其他平台（Android、iOS、iPad、Linux 或未知系统）**：主按钮保持可点击，跳到 `#desktop-download`，不直接下载安装包或唤醒商店。Other platforms receive a clickable link to desktop guidance, not an installer or a Store launch.
+- **无 JavaScript**：静态主按钮同样跳到 `#desktop-download`。The same guidance is available without JavaScript.
+
+底部桌面下载引导在所有平台可见，提供可选择复制的官网地址 <https://kaiwu-ai.github.io/>、[Windows 商店备用网页](https://apps.microsoft.com/detail/9NPQH4HQD3WK) 和 Mac Apple 芯片 DMG 链接。请在 Windows 或 Mac 电脑上访问本网站，下载 MindMotion 桌面客户端。
+
+The guidance section is available on every platform with a selectable website URL, a Windows Store web fallback, and the Mac Apple Silicon DMG. Visit this website on a Windows or Mac computer to download the MindMotion desktop client.
+
+## 案例搜索 / Case search
+
+导航及案例板块链接到 [THU课程成果知识库](https://thedoorofai.com/api/kaiwuai/mindmotion/search/)，用于检索课程成果与教学案例，需要已获授权的 AgentV 用户登录。页脚 GitHub 链接仅指向 KAIWU-AI 组织主页。
+
+The navigation and cases section link to the THU Course Outcomes Knowledge Base. Sign-in with an authorized AgentV account is required. The footer GitHub link points to the KAIWU-AI organization.
 
 ## 本地预览 / Local preview
 

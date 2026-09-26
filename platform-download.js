@@ -1,5 +1,5 @@
 export const WINDOWS_DOWNLOAD_URL =
-  "https://apps.microsoft.com/detail/9NPQH4HQD3WK";
+  "ms-windows-store://pdp/?ProductId=9NPQH4HQD3WK";
 export const MACOS_DOWNLOAD_URL =
   "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.2.0/MindMotion_0.2.0_aarch64.dmg";
 
@@ -100,11 +100,6 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
   const macosDownloadUrl = button.dataset.macosDownloadUrl || MACOS_DOWNLOAD_URL;
 
   button.dataset.platform = platform;
-  button.addEventListener("click", (event) => {
-    if (button.getAttribute("aria-disabled") === "true") {
-      event.preventDefault();
-    }
-  });
 
   const enableDownload = ({ url, filename, ariaLabel, title, labelText }) => {
     button.setAttribute("href", url);
@@ -125,9 +120,9 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
   if (platform === "windows") {
     enableDownload({
       url: windowsDownloadUrl,
-      ariaLabel: "从 Microsoft Store 获取 MindMotion Windows 版",
-      title: "从 Microsoft Store 获取 MindMotion Windows 版",
-      labelText: "从 Microsoft Store 获取 Windows 版",
+      ariaLabel: "下载 MindMotion Windows 桌面客户端（Microsoft Store）",
+      title: "下载 MindMotion Windows 桌面客户端（Microsoft Store）",
+      labelText: "下载桌面客户端 · Windows",
     });
     return platform;
   }
@@ -136,22 +131,19 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
     enableDownload({
       url: macosDownloadUrl,
       filename: "MindMotion_0.2.0_aarch64.dmg",
-      ariaLabel: "下载 MindMotion 0.2.0 macOS Apple 芯片安装包",
-      title: "下载 MindMotion 0.2.0 macOS Apple 芯片安装包",
-      labelText: "下载 macOS（Apple 芯片）· v0.2.0",
+      ariaLabel: "下载 MindMotion 0.2.0 macOS 桌面客户端（Apple 芯片）",
+      title: "下载 MindMotion 0.2.0 macOS 桌面客户端（Apple 芯片）",
+      labelText: "下载桌面客户端 · macOS（Apple 芯片）· v0.2.0",
     });
     return platform;
   }
 
-  button.removeAttribute("href");
-  button.removeAttribute("download");
-  button.setAttribute("aria-disabled", "true");
-  button.setAttribute("tabindex", "-1");
-  button.setAttribute("aria-label", "MindMotion 暂不支持当前系统");
-  button.setAttribute("title", "MindMotion 暂不支持当前系统");
-  button.classList.add("is-disabled");
-  if (label) label.textContent = "暂不支持当前系统";
-  if (icon) icon.textContent = "…";
+  enableDownload({
+    url: "#desktop-download",
+    ariaLabel: "下载 MindMotion 桌面客户端",
+    title: "下载 MindMotion 桌面客户端",
+    labelText: "下载桌面客户端",
+  });
   return platform;
 }
 
