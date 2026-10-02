@@ -39,7 +39,7 @@ PR #24 是连续工作台，官网是内容型产品首页。因此不复制工�
 - 产品展示使用 `MindMotion` / `MINDMOTION`；案例搜索的 AgentV 授权用户登录说明保留真实账户名称，不作为产品品牌展示。
 - `<title>`、description、Open Graph、Twitter metadata、JSON-LD、favicon 同步更新。
 - KAIWU-AI 继续作为产品所属组织，保留组织名、页脚 GitHub 组织链接和版权主体；导航与案例板块改为 THU课程成果知识库入口，不承诺公开源码。
-- 底部 CTA 复用为所有平台可见的 `desktop-download` 引导区；移动端及其他平台的主按钮通过原生锚点进入该区，无 JavaScript 时同样可用。
+- 底部 CTA 复用为所有平台可见的 `desktop-download` 引导区，提供 Windows 商店、Mac DMG 与 MeMo Android APK；Android 主按钮直接下载 APK，iOS、iPad、Linux 和未知系统通过原生锚点进入该区，无 JavaScript 时同样可用。
 - 运行时错误信息同步使用 MindMotion，避免旧品牌在控制台和无图形 fallback 中泄漏。
 
 ## 验收

@@ -1,9 +1,11 @@
 export const WINDOWS_DOWNLOAD_URL =
   "ms-windows-store://pdp/?ProductId=9NPQH4HQD3WK";
 export const MACOS_DOWNLOAD_URL =
-  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.2.0/MindMotion_0.2.0_aarch64.dmg";
+  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.2.1/MindMotion_0.2.1_aarch64.dmg";
+export const ANDROID_DOWNLOAD_URL =
+  "https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.2.1/MeMo_0.2.2_101.apk";
 
-export function detectDesktopPlatform(navigatorLike = {}) {
+export function detectDownloadPlatform(navigatorLike = {}) {
   const userAgent = String(navigatorLike.userAgent || "").trim().toLowerCase();
   const platform = String(navigatorLike.platform || "").trim().toLowerCase();
   const userAgentDataPlatform = String(navigatorLike.userAgentData?.platform || "")
@@ -11,7 +13,19 @@ export function detectDesktopPlatform(navigatorLike = {}) {
     .toLowerCase();
   const isTouchMac = platform === "macintel" && Number(navigatorLike.maxTouchPoints || 0) > 1;
 
-  if (isTouchMac || navigatorLike.userAgentData?.mobile === true) {
+  if (isTouchMac) {
+    return "other";
+  }
+
+  const hasAndroidSignal = userAgentDataPlatform === "android" || /\bandroid\b/.test(userAgent);
+  const androidPlatformCompatible = !platform || /^(?:linux\b|android\b)/.test(platform);
+  const androidHintCompatible = !userAgentDataPlatform || userAgentDataPlatform === "android";
+  const conflictingAndroidAgent = /\b(?:windows|iphone|ipad|ipod|macintosh|cros)\b/.test(userAgent);
+  if (hasAndroidSignal && androidPlatformCompatible && androidHintCompatible && !conflictingAndroidAgent) {
+    return "android";
+  }
+
+  if (navigatorLike.userAgentData?.mobile === true) {
     return "other";
   }
 
@@ -93,11 +107,12 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
     return "other";
   }
 
-  const platform = detectDesktopPlatform(navigatorLike);
+  const platform = detectDownloadPlatform(navigatorLike);
   const label = button.querySelector("[data-download-label]");
   const icon = button.querySelector("[data-download-icon]");
   const windowsDownloadUrl = button.dataset.windowsDownloadUrl || WINDOWS_DOWNLOAD_URL;
   const macosDownloadUrl = button.dataset.macosDownloadUrl || MACOS_DOWNLOAD_URL;
+  const androidDownloadUrl = button.dataset.androidDownloadUrl || ANDROID_DOWNLOAD_URL;
 
   button.dataset.platform = platform;
 
@@ -130,19 +145,30 @@ export function configurePlatformDownload(button, navigatorLike = {}) {
   if (platform === "macos") {
     enableDownload({
       url: macosDownloadUrl,
-      filename: "MindMotion_0.2.0_aarch64.dmg",
-      ariaLabel: "下载 MindMotion 0.2.0 macOS 桌面客户端（Apple 芯片）",
-      title: "下载 MindMotion 0.2.0 macOS 桌面客户端（Apple 芯片）",
-      labelText: "下载桌面客户端 · macOS（Apple 芯片）· v0.2.0",
+      filename: "MindMotion_0.2.1_aarch64.dmg",
+      ariaLabel: "下载 MindMotion 0.2.1 macOS 桌面客户端（Apple 芯片）",
+      title: "下载 MindMotion 0.2.1 macOS 桌面客户端（Apple 芯片）",
+      labelText: "下载桌面客户端 · macOS（Apple 芯片）· v0.2.1",
+    });
+    return platform;
+  }
+
+  if (platform === "android") {
+    enableDownload({
+      url: androidDownloadUrl,
+      filename: "MeMo_0.2.2_101.apk",
+      ariaLabel: "下载 MeMo 0.2.2 Android 客户端",
+      title: "下载 MeMo 0.2.2 Android 客户端（Android 12 及以上）",
+      labelText: "下载 MeMo · Android · v0.2.2",
     });
     return platform;
   }
 
   enableDownload({
     url: "#desktop-download",
-    ariaLabel: "下载 MindMotion 桌面客户端",
-    title: "下载 MindMotion 桌面客户端",
-    labelText: "下载桌面客户端",
+    ariaLabel: "下载 MindMotion / MeMo 客户端",
+    title: "下载 MindMotion / MeMo 客户端",
+    labelText: "下载客户端",
   });
   return platform;
 }
