@@ -6,21 +6,15 @@ This is the official GitHub Pages website for [KAIWU-AI](https://github.com/KAIW
 
 MindMotion 的 Logo、紫色品牌 token 与连续工作台视觉语言来自 AgentV 已合并的 [PR #24](https://github.com/KAIWU-AI/AgentV/pull/24)，官网仅做品牌与界面语言融合，保留原有核心布局和 3D 交互。资源来源、固定提交、SHA-256 与适配边界见 [`docs/mindmotion-brand-integration.md`](./docs/mindmotion-brand-integration.md)。
 
-## 客户端下载 / Client downloads
+## 产品官网 / Product website
 
-首页按钮按系统显示客户端下载入口 / The primary action is tailored to the visitor's platform:
+首屏原下载按钮与底部下载入口统一链接到 [MindMotion 产品官网](https://thedoorofai.com/api/kaiwuai/mindmotion/about/)，由产品官网提供介绍与最新客户端下载链接。
 
-- **macOS（Apple 芯片）**：[MindMotion 0.2.1 DMG](https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.2.1/MindMotion_0.2.1_aarch64.dmg)，已签名并通过 Apple 公证。
-- **Android（Android 12 及以上）**：[MeMo 0.2.2 APK / versionCode 101](https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/download/desktop-v0.2.1/MeMo_0.2.2_101.apk)，使用现有 MeMo 专用签名。
-- **Windows**：主按钮使用 `ms-windows-store://pdp/?ProductId=9NPQH4HQD3WK` 打开 Microsoft Store，不设置 `download` 属性；版本以商店页面为准。The Windows action opens the native Microsoft Store.
-- **其他平台（iOS、iPad、Linux、未知系统或冲突信号）**：主按钮保持可点击，跳到 `#desktop-download`，不直接下载安装包或唤醒商店。Other platforms receive a clickable link to download guidance, not an installer or a Store launch.
-- **无 JavaScript**：静态主按钮同样跳到 `#desktop-download`。The same guidance is available without JavaScript.
+The former download button and bottom download action link directly to the [official product website](https://thedoorofai.com/api/kaiwuai/mindmotion/about/) for product information and current client downloads.
 
-底部下载引导在所有平台可见，提供可选择复制的官网地址 <https://kaiwu-ai.github.io/>、[Windows 商店备用网页](https://apps.microsoft.com/detail/9NPQH4HQD3WK)、Mac Apple 芯片 DMG 和 Android APK 链接。无 JavaScript 时也可选择平台下载。
+组织主页不再提供安装包或商店直链，不识别访问者操作系统；所有平台及无 JavaScript 环境使用同一原生链接。
 
-The guidance section is available on every platform, including without JavaScript, with a selectable website URL, a Windows Store web fallback, the Mac Apple Silicon DMG, and the Android APK.
-
-[公开 Release](https://github.com/KAIWU-AI/KAIWU-AI.github.io/releases/tag/desktop-v0.2.1) 同时提供 Windows x64 独立 EXE 和 `SHA256SUMS.txt`。该 EXE 未签名，可能触发 SmartScreen 提示；官网 Windows 主按钮仍推荐 Microsoft Store，商店版本以商店页面为准。
+The organization site no longer selects downloads by operating system or links directly to installers or app stores. The same native link works on every platform and without JavaScript.
 
 ## 案例搜索 / Case search
 
