@@ -82,10 +82,8 @@ test('case search replaces source-release promises and all fragment links resolv
 test('download and brand documentation reflect desktop guidance and the sign-in exception', async () => {
   const readme = await text('README.md');
   const brand = await text('docs/mindmotion-brand-integration.md');
-  assert.match(readme, /ms-windows-store:\/\/pdp\/\?ProductId=9NPQH4HQD3WK/);
-  assert.match(readme, /https:\/\/apps\.microsoft\.com\/detail\/9NPQH4HQD3WK/);
-  assert.match(readme, /#desktop-download/);
-  assert.match(readme, /https:\/\/kaiwu-ai\.github\.io\//);
+  assert.ok(readme.includes('https://thedoorofai.com/api/kaiwuai/mindmotion/about/'));
+  assert.doesNotMatch(readme, /ms-windows-store:|apps\.microsoft\.com|#desktop-download|releases\/download/);
   assert.match(readme, /https:\/\/thedoorofai\.com\/api\/kaiwuai\/mindmotion\/search\//);
   assert.doesNotMatch(readme, /其他平台保持禁用|不支持|unsupported/i);
   assert.match(brand, /AgentV.*登录/);
